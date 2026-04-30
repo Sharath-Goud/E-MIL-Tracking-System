@@ -383,7 +383,7 @@ namespace E_MIL_Tracking_system.Controllers
 
             var savedRecord = await _service.GetByIdAsync(id);
 
-            string baseUrl = "https://localhost:7089";
+            string baseUrl = "http://10.52.16.17:5222";
 
             string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={id}";
             string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={id}";

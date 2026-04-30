@@ -1,4 +1,5 @@
-﻿using E_MIL_Tracking_system.DTOs.Checklist;
+﻿using E_MIL_Tracking_system.DTOs;
+using E_MIL_Tracking_system.DTOs.Checklist;
 using E_MIL_Tracking_system.Repositories.Interfaces;
 
 namespace E_MIL_Tracking_system.Services
@@ -38,6 +39,11 @@ namespace E_MIL_Tracking_system.Services
         public async Task<List<ChecklistResponseDto>> GetAllAsync()
         {
             return await _repo.GetAllAsync();
+        }
+
+        public async Task<List<AuditHourDto>> GetAuditHoursAsync()
+        {
+            return await _repo.GetAuditHoursAsync();
         }
 
         public async Task<ChecklistResponseDto?> GetByIdAsync(int id)

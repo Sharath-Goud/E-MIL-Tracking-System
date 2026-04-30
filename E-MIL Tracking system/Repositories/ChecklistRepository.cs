@@ -1,4 +1,5 @@
 ﻿using E_MIL_Tracking_system.Data;
+using E_MIL_Tracking_system.DTOs;
 using E_MIL_Tracking_system.DTOs.Checklist;
 using E_MIL_Tracking_system.Repositories.Interfaces;
 using Microsoft.Data.SqlClient;
@@ -209,6 +210,67 @@ namespace E_MIL_Tracking_system.Repositories
             cmd.Parameters.AddWithValue("@Status", status);
 
             await cmd.ExecuteNonQueryAsync();
+        }
+
+        private DateTime? ParseAuditDate(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            text = text.Trim();
+
+            if (text.StartsWith("WK"))
+            {
+                var parts = text.Split('/');
+
+                if (parts.Length == 2)
+                    text = parts[1];
+            }
+
+            if (DateTime.TryParseExact(
+                text + "-" + DateTime.Now.Year,
+                "dd-MMM-yyyy",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var date))
+            {
+                return date.Date;
+            }
+
+            return null;
+        }
+
+        public async Task<List<AuditHourDto>> GetAuditHoursAsync()
+        {
+            var list = new List<AuditHourDto>();
+
+            using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
+            using var cmd = new SqlCommand(@"
+                SELECT AuditDate, AuditHour
+                FROM AuditHours
+            ", con);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                list.Add(new AuditHourDto
+                {
+                    AuditDate = reader["AuditDate"] == DBNull.Value
+                    ? ""
+                    : reader["AuditDate"].ToString(),
+
+                                ParsedDate = ParseAuditDate(reader["AuditDate"]?.ToString()),
+
+                                AuditHour = reader["AuditHour"] == DBNull.Value
+                    ? 0
+                    : Convert.ToDecimal(reader["AuditHour"])
+                });
+            }
+
+            return list;
         }
     }
 }

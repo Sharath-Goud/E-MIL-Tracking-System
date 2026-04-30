@@ -138,6 +138,7 @@ namespace E_MIL_Tracking_system.Controllers
                     System.Globalization.ISOWeek.GetWeekOfYear(x.Date.Value) == week)
             }).ToList();
 
+
             ViewBag.WeeklyReportCategories = weeklyData
                 .Select(x => "WK" + x.Week)
                 .ToList();
@@ -148,6 +149,136 @@ namespace E_MIL_Tracking_system.Controllers
                 {
                     name = "Finding/Hour",
                     data = weeklyData.Select(x => x.Count).ToList()
+                }
+            };
+
+            var auditHours = await _service.GetAuditHoursAsync();
+
+            var weeklyRData = weekNumbers.Select(week =>
+            {
+                var weekStart = System.Globalization.ISOWeek.ToDateTime(selectedYear, week, DayOfWeek.Monday);
+
+                decimal totalFindingSum = 0;
+                decimal auditHourSum = 0;
+
+                for (int i = 0; i <= 5; i++)
+                {
+                    var currentDate = weekStart.AddDays(i).Date;
+
+                    int dayFinding = records.Count(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date == currentDate);
+
+                    totalFindingSum += dayFinding;
+
+                    string auditDateText = i == 0
+                        ? $"WK{week}/{weekStart:dd-MMM}"
+                        : currentDate.ToString("dd-MMM");
+
+                    var savedAudit = auditHours.FirstOrDefault(x =>
+                        !string.IsNullOrWhiteSpace(x.AuditDate) &&
+                        x.AuditDate.Trim() == auditDateText);
+
+                    if (savedAudit != null)
+                    {
+                        auditHourSum += savedAudit.AuditHour;
+                    }
+                }
+
+                string finalRValue = "";
+
+                if (auditHourSum > 0)
+                {
+                    decimal result = totalFindingSum / auditHourSum;
+                    decimal truncatedResult = Math.Floor(result * 10) / 10;
+
+                    finalRValue = truncatedResult.ToString("0.0");
+                }
+
+                var findingHr = new List<string>
+    {
+        "", "", "", "", "", finalRValue
+    };
+
+                var validFindingHrValues = findingHr
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x =>
+                    {
+                        decimal.TryParse(x, out var value);
+                        return value;
+                    })
+                    .Where(x => x > 0)
+                    .ToList();
+
+                if (validFindingHrValues.Any())
+                {
+                    decimal maxValue = validFindingHrValues.Max();
+                    decimal minValue = validFindingHrValues.Min();
+
+                    decimal rResult = maxValue - minValue;
+                    decimal truncatedR = Math.Floor(rResult * 10) / 10;
+
+                    return truncatedR;
+                }
+
+                return 0;
+            }).ToList();
+
+            ViewBag.WeeklyRChartSeries = new[]
+            {
+    new
+    {
+        name = "R-Chart",
+        data = weeklyRData
+    }
+};
+
+            var weeklyFindingPerHourData = weekNumbers.Select(week =>
+            {
+                var weekStart = System.Globalization.ISOWeek.ToDateTime(selectedYear, week, DayOfWeek.Monday);
+
+                decimal totalFindingSum = 0;
+                decimal auditHourSum = 0;
+
+                for (int i = 0; i <= 5; i++)
+                {
+                    var currentDate = weekStart.AddDays(i).Date;
+
+                    int dayFinding = records.Count(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date == currentDate);
+
+                    totalFindingSum += dayFinding;
+
+                    string auditDateText = i == 0
+                        ? $"WK{week}/{weekStart:dd-MMM}"
+                        : currentDate.ToString("dd-MMM");
+
+                    var savedAudit = auditHours.FirstOrDefault(x =>
+                        x.ParsedDate.HasValue &&
+                        x.ParsedDate.Value.Date == currentDate);
+
+                    if (savedAudit != null)
+                    {
+                        auditHourSum += savedAudit.AuditHour;
+                    }
+                }
+
+                if (auditHourSum > 0)
+                {
+                    decimal result = totalFindingSum / auditHourSum;
+                    return Math.Floor(result * 10) / 10;
+                }
+
+                return 0;
+            }).ToList();
+
+            ViewBag.WeeklyFindingPerHourSeries = new[]
+            {
+                new
+                {
+                    name = "Finding/Hour",
+                    data = weeklyFindingPerHourData
                 }
             };
 
