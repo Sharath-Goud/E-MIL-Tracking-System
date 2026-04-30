@@ -1,0 +1,190 @@
+﻿@model E_MIL_Tracking_system.DTOs.LoginDto
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+</head>
+
+<body>
+
+    <div class="sky-bg"></div>
+    <div class="stars"></div>
+    <div class="sun"></div>
+    <div class="moon"></div>
+
+    <div class="cloud-layer">
+        <div class="clouds clouds-back"></div>
+        <div class="clouds"></div>
+    </div>
+
+    <div class="snow"></div>
+    <div class="snow snow-two"></div>
+    <div class="snow snow-three"></div>
+
+    <div class="container">
+        <div class="left-panel">
+            <div id="lottie-animation"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="company-logo">
+                <img src="~/img/Foxlink-logo.png" alt="Foxlink-logo" />
+            </div>
+
+            <div class="login-box">
+                <div class="logo">E-MIL Tracking System</div>
+                <div class="welcome">Welcome Back</div>
+
+                @* @if (ViewBag.Error != null) *@
+                @* { *@
+                @*     <script> *@
+                @*         window.onload = function () { *@
+                @*             Toastify({ *@
+                @*                 text: "@ViewBag.Error", *@
+                @*                 duration: 3000, *@
+                @*                 gravity: "top", *@
+                @*                 position: "right", *@
+                @*                 close: true, *@
+                @*                 stopOnFocus: true, *@
+                @*                 style: { *@
+                @*                     background: "#ff4d4d", *@
+                @*                     color: "#fff", *@
+                @*                     borderRadius: "10px", *@
+                @*                     padding: "14px 20px", *@
+                @*                     fontSize: "15px", *@
+                @*                     fontWeight: "600" *@
+                @*                 } *@
+                @*             }).showToast(); *@
+                @*         }; *@
+                @*     </script> *@
+                @* } *@
+
+                @if (ViewBag.Error != null)
+                {
+                    <script>
+                        window.onload = function () {
+                            Toastify({
+                                text: "@ViewBag.Error",
+                                duration: 4000,
+                                gravity: "top",
+                                position: "right",
+                                close: true,
+                                stopOnFocus: true,
+                                newestOnTop: true,
+                                offset: {
+                                    x: 20,
+                                    y: 20
+                                },
+                                style: {
+                                    background: "rgba(20, 20, 35, 0.95)",
+                                    color: "#ffffff",
+                                    borderRadius: "16px",
+                                    padding: "16px 24px",
+                                    fontSize: "15px",
+                                    fontWeight: "600",
+                                    boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+                                    border: "1px solid rgba(255,255,255,0.12)",
+                                    backdropFilter: "blur(12px)",
+                                    letterSpacing: "0.4px"
+                                }
+                            }).showToast();
+                        };
+                    </script>
+                }
+
+                <form method="post" id="loginForm">
+                    <div class="input-group">
+                        <input type="text" asp-for="EmpId" required />
+                        <label>Employee ID</label>
+                    </div>
+
+                    <div class="input-group password-group">
+                        <input type="password" asp-for="Password" id="passwordField" required />
+                        <label>Password</label>
+
+                        <span class="toggle-password" onclick="togglePassword()">
+                            <img id="eyeIcon"
+                                 src="https://cdn-icons-png.flaticon.com/512/709/709612.png"
+                                 alt="Show Password" />
+                        </span>
+                    </div>
+
+                    <button type="submit" class="btn">Log In</button>
+                </form>
+
+                @* <a href="#" class="forgot">Forgotten Password?</a> *@
+            </div>
+        </div>
+    </div>
+
+    <div class="emil-login-overlay" id="emilLoginOverlay">
+        <div class="emil-loader-box">
+            <div class="emil-glow-ring"></div>
+
+            <h1 class="emil-title">
+                <span>E</span>
+                <span>-</span>
+                <span>M</span>
+                <span>I</span>
+                <span>L</span>
+            </h1>
+
+            <h2 class="emil-sub-title">Tracking System</h2>
+
+            <div class="emil-loading-text">Opening Dashboard...</div>
+
+            <div class="emil-progress">
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/login.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script>
+        lottie.loadAnimation({
+            container: document.getElementById('lottie-animation'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: '/animations/login.json'
+        });
+
+        function togglePassword() {
+            const passwordField = document.getElementById("passwordField");
+            const eyeIcon = document.getElementById("eyeIcon");
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                eyeIcon.src = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
+            } else {
+                passwordField.type = "password";
+                eyeIcon.src = "https://cdn-icons-png.flaticon.com/512/709/709612.png";
+            }
+        }
+
+        const loginForm = document.getElementById("loginForm");
+        const emilLoginOverlay = document.getElementById("emilLoginOverlay");
+
+        loginForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            setTimeout(function () {
+                loginForm.submit();
+            }, 3000);
+            emilLoginOverlay.classList.add("active");
+        });
+    </script>
+
+</body>
+</html>

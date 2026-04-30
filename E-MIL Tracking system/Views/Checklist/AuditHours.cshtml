@@ -1,0 +1,542 @@
+﻿@model E_MIL_Tracking_system.DTOs.AuditHoursPageDto
+
+@{
+    ViewData["Title"] = "Audit Hours";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+
+    var today = DateTime.Today;
+
+    if (today.DayOfWeek == DayOfWeek.Sunday)
+    {
+        today = today.AddDays(1);
+    }
+
+    int daysFromMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+    var monday = today.AddDays(-daysFromMonday);
+
+    var culture = System.Globalization.CultureInfo.CurrentCulture;
+    int weekNumber = culture.Calendar.GetWeekOfYear(
+        monday,
+        System.Globalization.CalendarWeekRule.FirstFourDayWeek,
+        DayOfWeek.Monday
+    );
+
+    var dates = new List<string>
+    {
+        $"WK{weekNumber}/{monday:dd-MMM}"
+    };
+
+    for (int i = 1; i <= 5; i++)
+    {
+        dates.Add(monday.AddDays(i).ToString("dd-MMM"));
+    }
+
+    var totalFinding = new List<string>();
+
+    int weeklyTotal = Model.ChecklistRecords.Count(x =>
+        x.Date.HasValue &&
+        x.Date.Value.Date == monday.Date 
+    );
+
+    totalFinding.Add(weeklyTotal.ToString());
+
+    for (int i = 1; i <= 5; i++)
+    {
+        var currentDate = monday.AddDays(i).Date;
+
+        int dayCount = Model.ChecklistRecords.Count(x =>
+            x.Date.HasValue &&
+            x.Date.Value.Date == currentDate
+        );
+
+        totalFinding.Add(dayCount.ToString());
+    }
+
+    var auditHr = dates.Select(date =>
+    {
+        var saved = Model.AuditHours
+            .FirstOrDefault(x => x.AuditDate == date);
+
+        return saved?.AuditHour.ToString("0.##") ?? "";
+    }).ToList();
+
+    decimal totalFindingSum = totalFinding.Sum(x =>
+        {
+    decimal.TryParse(x, out var value);
+    return value;
+        });
+
+    decimal auditHourSum = auditHr.Sum(x =>
+    {
+        decimal.TryParse(x, out var value);
+        return value;
+    });
+
+    string finalFindingPerHour = "";
+
+    if (auditHourSum > 0)
+    {
+        decimal result = totalFindingSum / auditHourSum;
+
+        decimal truncatedResult = Math.Floor(result * 10) / 10;
+
+        finalFindingPerHour = truncatedResult.ToString("0.0");
+    }
+
+    var findingHr = new List<string>
+    {
+        "", "", "", "", "", finalFindingPerHour
+    };
+    string finalRValue = "";
+
+    var validFindingHrValues = findingHr
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Select(x =>
+        {
+            decimal.TryParse(x, out var value);
+            return value;
+        })
+        .Where(x => x > 0)
+        .ToList();
+
+    if (validFindingHrValues.Any())
+    {
+        decimal maxValue = validFindingHrValues.Max();
+        decimal minValue = validFindingHrValues.Min();
+
+        decimal rResult = maxValue - minValue;
+
+        decimal truncatedR = Math.Floor(rResult * 10) / 10;
+
+        finalRValue = truncatedR.ToString("0.0");
+    }
+
+    var rValue = new List<string>
+{
+    "", "", "", "", "", finalRValue
+};
+}
+
+<div class="audit-hours-page">
+    <div class="audit-hours-card">
+        <div class="audit-header">
+            <h3 class="audit-title">Audit Hours</h3>
+
+            <div class="audit-filter-buttons">
+                <select class="audit-dropdown" onchange="showAuditData(this.value)">
+                    <option value="week1">Week 1</option>
+                    <option value="week2">Week 2</option>
+                    <option value="week3">Week 3</option>
+                    <option value="total">Total</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="audit-table-wrapper">
+            <table class="audit-hours-table">
+                <tbody>
+                    <tr>
+                        <th class="left-head">Date</th>
+                        @foreach (var item in dates)
+                        {
+                            <th class="date-cell @(item.StartsWith("WK") ? "week-cell" : "")">@item</th>
+                        }
+                    </tr>
+
+                    <tr>
+                        <th class="row-head total-row">Total Finding</th>
+                        @foreach (var item in totalFinding)
+                        {
+                            <td>@item</td>
+                        }
+                    </tr>
+
+                    <tr>
+                        <th class="row-head audit-row">Audit Hour</th>
+
+                        @for (int i = 0; i < auditHr.Count; i++)
+                        {
+                            var isSaved = !string.IsNullOrWhiteSpace(auditHr[i]);
+
+                            bool isWeekColumn = i == 0;
+                            bool isFutureDate = false;
+
+                            DateTime parsedDate;
+
+                            if (!isWeekColumn)
+                            {
+                                var fullDateText = dates[i] + "-" + DateTime.Today.Year;
+
+                                if (DateTime.TryParseExact(
+                                fullDateText,
+                                "dd-MMM-yyyy",
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                System.Globalization.DateTimeStyles.None,
+                                out parsedDate))
+                                {
+                                    if (parsedDate.Date > DateTime.Today.Date)
+                                    {
+                                        isFutureDate = true;
+                                    }
+                                }
+                            }
+
+                            bool isReadonly = isSaved || isFutureDate || isWeekColumn;
+
+                            <td>
+                                <form asp-controller="Checklist"
+                                      asp-action="SaveAuditHour"
+                                      method="post"
+                                      class="audit-hour-form">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="AuditDateText"
+                                           value="@dates[i]" />
+
+                                    <input type="number"
+                                           step="0.1"
+                                           name="AuditHour"
+                                           class="audit-input @(isReadonly ? "saved-input" : "")"
+                                           value="@auditHr[i]"
+                                           placeholder="Audit Hour"
+                                    @(isReadonly ? "readonly" : "") />
+
+                                    @if (!isReadonly)
+                                    {
+                                        <button type="submit"
+                                                class="audit-tick-btn"
+                                                title="Save Audit Hour">
+                                            <i class="fa fa-check"></i>
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        }
+                    </tr>
+
+                    <tr>
+                        <th class="row-head finding-row">Finding/Hour</th>
+                        @foreach (var item in findingHr)
+                        {
+                            <td>@item</td>
+                        }
+                    </tr>
+
+                    <tr>
+                        <th class="row-head r-row">R</th>
+                        @foreach (var item in rValue)
+                        {
+                            <td>@item</td>
+                        }
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+        function showAuditData(type) {
+        if (type !== "week1") {
+            alert(type + " data will be shown here.");
+        }
+    }
+</script>
+
+<style>
+    body {
+        background: #1D2545;
+    }
+
+    .audit-hours-page {
+        padding: 10px 0;
+        background: transparent;
+        min-height: 100vh;
+    }
+
+    .audit-hours-card {
+        background: rgba(255,255,255,0.05);
+        border-radius: 24px;
+        padding: 24px;
+        border: 1px solid rgba(255,255,255,0.14);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
+    }
+
+    .audit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .audit-title {
+        color: #ffffff;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .audit-filter-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .audit-filter-btn {
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.10);
+        color: #ffffff;
+        padding: 9px 18px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s ease;
+    }
+
+        .audit-filter-btn:hover,
+        .audit-filter-btn.active {
+            background: #ffffff;
+            color: #000000;
+            transform: translateY(-2px);
+        }
+
+    .audit-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 16px;
+        background: transparent;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    .audit-hours-table {
+        width: 100%;
+        min-width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .audit-hours-table th {
+            background: linear-gradient(to bottom, #d9dee8, #c7cfdb);
+            color: #111827;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px 12px;
+            border: 1px solid #7f8aa3;
+            text-align: center;
+            vertical-align: middle;
+            min-width: 130px;
+        }
+
+        .audit-hours-table td {
+            background: #0b0f1f;
+            color: #F3F4F6;
+            font-size: 14px;
+            padding: 14px 12px;
+            border: 1px solid #4b5563;
+            text-align: center;
+            vertical-align: middle;
+            min-width: 130px;
+        }
+
+        .audit-hours-table tr:nth-child(even) td {
+            background: #11182d;
+        }
+
+        .audit-hours-table tr:hover td {
+            background: #1b2548;
+            transition: 0.3s ease;
+        }
+
+        .audit-hours-table .left-head,
+        .audit-hours-table .row-head {
+            width: 150px;
+            min-width: 150px !important;
+            text-align: center;
+        }
+
+    .week-cell {
+        position: relative;
+    }
+
+        .week-cell::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-top: 9px solid #22c55e;
+            border-right: 9px solid transparent;
+        }
+
+    .audit-table-wrapper::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .audit-table-wrapper::-webkit-scrollbar-track {
+        background: #0f172a;
+        border-radius: 10px;
+    }
+
+    .audit-table-wrapper::-webkit-scrollbar-thumb {
+        background: #64748b;
+        border-radius: 10px;
+    }
+
+        .audit-table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+    .audit-input {
+        width: 100%;
+        height: 42px;
+        border: 1px solid #a9b5d0;
+        border-radius: 12px;
+        outline: none;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: #2a3245;
+        background: linear-gradient(to bottom, #eef1fb, #c8cef1);
+        box-sizing: border-box;
+        transition: all 0.25s ease;
+        text-align: left;
+    }
+
+        .audit-input::placeholder {
+            color: #2a3245;
+            opacity: 1;
+        }
+
+        .audit-input:hover {
+            border-color: #8ea1e8;
+            box-shadow: 0 4px 12px rgba(107, 127, 215, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .audit-input:focus {
+            border-color: #6b7fd7;
+            box-shadow: 0 0 0 3px rgba(107, 127, 215, 0.18);
+            background: #ffffff;
+        }
+
+    .audit-hour-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .audit-hour-form .audit-input {
+            flex: 1;
+        }
+
+    .audit-tick-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        border: none;
+        border-radius: 50%;
+        background: #22c55e;
+        color: #ffffff;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        transition: 0.3s ease;
+    }
+
+    .audit-hour-form:has(.audit-input:not(:placeholder-shown)) .audit-tick-btn {
+        display: flex;
+    }
+
+    .audit-tick-btn:hover {
+        background: #16a34a;
+        transform: scale(1.08);
+    }
+
+    .saved-input {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        text-align: center;
+        pointer-events: none;
+        padding-left: 0;
+    }
+
+        .saved-input:hover,
+        .saved-input:focus {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .saved-input::placeholder {
+            color: transparent;
+        }
+
+    .audit-dropdown {
+        min-width: 180px;
+        height: 45px;
+        padding: 0 42px 0 16px;
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.14);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 22px rgba(0,0,0,0.18);
+    }
+
+    .audit-filter-buttons {
+        position: relative;
+    }
+
+        .audit-filter-buttons::after {
+            content: "\f078";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ffffff;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+    .audit-dropdown:hover {
+        background: rgba(255,255,255,0.20);
+        border-color: rgba(255,255,255,0.35);
+    }
+
+    .audit-dropdown:focus {
+        background: #ffffff;
+        color: #000000;
+        border-color: #ffffff;
+    }
+
+    .audit-dropdown option {
+        background: #1D2545;
+        color: #ffffff;
+        font-weight: 600;
+    }
+</style>

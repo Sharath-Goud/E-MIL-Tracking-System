@@ -1,0 +1,207 @@
+﻿@model E_MIL_Tracking_system.DTOs.RegisterDto
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registration</title>
+
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+</head>
+
+<body>
+
+    <div class="sky-bg"></div>
+    <div class="stars"></div>
+    <div class="sun"></div>
+    <div class="moon"></div>
+
+    <div class="cloud-layer">
+        <div class="clouds clouds-back"></div>
+        <div class="clouds"></div>
+    </div>
+
+    <div class="snow"></div>
+    <div class="snow snow-two"></div>
+    <div class="snow snow-three"></div>
+
+    <div class="container">
+        <div class="left-panel">
+            <div id="lottie-animations"></div>
+        </div>
+
+        <div class="right-panel register-panel">
+            <div class="login-box register-box">
+                <div class="logo">E-MIL Tracking System</div>
+                <div class="welcome">Create a NEW User</div>
+
+                <form method="post"
+                      id="registerForm"
+                      asp-controller="Auth"
+                      asp-action="Registration"
+                      enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="register-grid">
+
+                        <div class="input-group">
+                            <input type="text" asp-for="UserId" required />
+                            <label>Employee ID</label>
+                        </div>
+
+                        <div class="input-group">
+                            <input type="text" asp-for="FullName" required />
+                            <label>Full Name</label>
+                        </div>
+
+                        <div class="input-group password-group">
+                            <input type="password" asp-for="Password" id="passwordField" required />
+                            <label>Password</label>
+
+                            <span class="toggle-password" onclick="togglePassword('passwordField', 'eyeIcon1')">
+                                <img id="eyeIcon1"
+                                     src="https://cdn-icons-png.flaticon.com/512/709/709612.png"
+                                     alt="Show Password" />
+                            </span>
+                        </div>
+
+                        <div class="input-group password-group">
+                            <input type="password" asp-for="ConfirmPassword" id="confirmPasswordField" required />
+                            <label>Confirm Password</label>
+
+                            <span class="toggle-password" onclick="togglePassword('confirmPasswordField', 'eyeIcon2')">
+                                <img id="eyeIcon2"
+                                     src="https://cdn-icons-png.flaticon.com/512/709/709612.png"
+                                     alt="Show Password" />
+                            </span>
+                        </div>
+
+                        <div class="input-group full-width">
+                            <input type="text" asp-for="Designation" required />
+                            <label>Designation</label>
+                        </div>
+
+                    </div>
+
+                    <div class="role-group">
+                        <label class="role-title">Role</label>
+                        <div class="role-options">
+                            <label class="radio-label">
+                                <input type="radio" asp-for="Role" value="Admin" />
+                                <span>Admin</span>
+                            </label>
+
+                            <label class="radio-label">
+                                <input type="radio" asp-for="Role" value="User" />
+                                <span>User</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="file-group">
+                        <label class="file-title">Choose File</label>
+                        <input type="file" asp-for="ProfileImage" class="register-file-input" />
+                    </div>
+
+                    <button type="submit" class="btn">Register</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        lottie.loadAnimation({
+            container: document.getElementById('lottie-animations'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: '/animations/register.json'
+        });
+
+            function togglePassword(fieldId, iconId) {
+            const passwordField = document.getElementById(fieldId);
+            const eyeIcon = document.getElementById(iconId);
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+
+                eyeIcon.src = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
+            } else {
+                passwordField.type = "password";
+
+                eyeIcon.src = "https://cdn-icons-png.flaticon.com/512/709/709612.png";
+            }
+        }
+
+        function showToast(message, type) {
+            Toastify({
+                text: message,
+                duration: 3500,
+                gravity: "top",
+                position: "right",
+                close: true,
+                stopOnFocus: true,
+                style: {
+                    background: type === "success"
+                        ? "linear-gradient(135deg, #00c896, #00a8ff)"
+                        : "linear-gradient(135deg, #ff416c, #ff4b2b)",
+                    color: "#fff",
+                    borderRadius: "16px",
+                    padding: "16px 24px",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    letterSpacing: "0.4px"
+                }
+            }).showToast();
+        }
+
+        @if (ViewBag.Success != null)
+        {
+            <text>
+                    showToast("@ViewBag.Success", "success");
+            </text>
+        }
+
+        @if (ViewBag.Error != null)
+        {
+            <text>
+                    showToast("@ViewBag.Error", "error");
+            </text>
+        }
+
+        const registerForm = document.getElementById("registerForm");
+
+        registerForm.addEventListener("submit", function (e) {
+            const userId = document.querySelector("[name='UserId']").value.trim();
+            const fullName = document.querySelector("[name='FullName']").value.trim();
+            const password = document.querySelector("[name='Password']").value.trim();
+            const confirmPassword = document.querySelector("[name='ConfirmPassword']").value.trim();
+            const designation = document.querySelector("[name='Designation']").value.trim();
+            const role = document.querySelector("[name='Role']:checked");
+
+            if (!userId || !fullName || !password || !confirmPassword || !designation || !role) {
+                e.preventDefault();
+                showToast("Please fill all required fields.", "error");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                showToast("Password and Confirm Password do not match.", "error");
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

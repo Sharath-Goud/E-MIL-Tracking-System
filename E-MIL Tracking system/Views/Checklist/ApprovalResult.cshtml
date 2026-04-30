@@ -1,0 +1,66 @@
+﻿@{
+    Layout = null;
+    var success = TempData["SuccessMessage"];
+    var error = TempData["ErrorMessage"];
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Approval Status</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f5f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .result-card {
+            background: white;
+            padding: 50px;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            width: 500px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #111827;
+        }
+
+        .success {
+            color: #16a34a;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .error {
+            color: #dc2626;
+            font-weight: 700;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="result-card">
+        <h2>Checklist Approval Response</h2>
+
+        @if (success != null)
+        {
+            <div class="success">@success</div>
+        }
+
+        @if (error != null)
+        {
+            <div class="error">@error</div>
+        }
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,496 @@
+﻿@model List<E_MIL_Tracking_system.DTOs.Checklist.ChecklistResponseDto>
+
+@{
+    ViewData["Title"] = "Report";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="report-page">
+    <div class="report-card">
+        <h3 class="report-title">A2 Reports</h3>
+
+        <div class="table-wrapper">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Week</th>
+                        <th>Project</th>
+                        <th>Date</th>
+                        <th>Problem Statement</th>
+                        <th>Picture Before</th>
+                        <th>Picture After</th>
+                        <th>Frequency</th>
+                        <th>DRI</th>
+                        <th>C/P</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int serialNo = 1;
+
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@serialNo</td>
+
+                                <td>@item.WeekCode</td>
+
+                                <td>@item.Project</td>
+
+                                <td>@(item.Date?.ToString("d-MMM"))</td>
+
+                                <td>
+                                    <strong>Issue : @item.Line : @item.StationName</strong><br />
+
+                                    @item.ProblemStatement
+                                    <br /><br />
+
+                                    <strong>Root Cause</strong><br />
+                                    @(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")
+                                    <br /><br />
+
+                                    <strong>Corrective Action</strong><br />
+                                    @(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")
+                                </td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
+                                    {
+                                        <img src="@item.BeforeImagePath"
+                                             class="table-preview-img clickable-img"
+                                             alt="Before Image"
+                                             onclick="openImageModal(this.src)" />
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(item.AfterImagePath))
+                                    {
+                                        <img src="@item.AfterImagePath"
+                                             class="table-preview-img clickable-img"
+                                             alt="After Image"
+                                             onclick="openImageModal(this.src)" />
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+
+                                <td>@item.Frequency</td>
+
+                                <td>@item.CmDri</td>
+
+                                <td>@(item.DueDate?.ToString("d-MMM"))</td>
+                            </tr>
+
+                            serialNo++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="no-data-cell">
+                                No checklist records found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div id="imageModal" class="image-modal" onclick="handleModalBackgroundClick(event)">
+            <span class="close-modal" onclick="closeImageModal()">&times;</span>
+            <img class="modal-content" id="modalImage" alt="Large preview" />
+        </div>
+    </div>
+</div>
+<script>
+    function openImageModal(src) {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImage");
+
+        modalImg.src = src;
+        modal.classList.add("show");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById("imageModal");
+        modal.classList.remove("show");
+        document.body.style.overflow = "";
+
+        setTimeout(() => {
+            if (!modal.classList.contains("show")) {
+                document.getElementById("modalImage").src = "";
+            }
+        }, 500);
+    }
+
+    function handleModalBackgroundClick(event) {
+        if (event.target.id === "imageModal") {
+            closeImageModal();
+        }
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeImageModal();
+        }
+    });
+</script>
+<style>
+    body {
+        background: #1D2545;
+    }
+
+    .report-page {
+        padding: 10px 0;
+        min-height: 100vh;
+    }
+
+    .report-card {
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 8px 24px rgba(18, 24, 40, 0.08);
+        border: 1px solid #e9edf5;
+    }
+
+    .report-title {
+        color: #FFFFFF;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 14px;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 16px;
+        background: #162046;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    .report-table {
+        width: max-content;
+        min-width: 1800px;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .report-table thead th {
+            background: linear-gradient(to bottom, #d9dee8, #c7cfdb);
+            color: #111827;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px 12px;
+            border: 1px solid #7f8aa3;
+            text-align: left;
+            vertical-align: middle;
+            min-width: 130px;
+            white-space: normal;
+        }
+
+        .report-table tbody td {
+            background: #0b0f1f;
+            color: #F3F4F6;
+            font-size: 14px;
+            padding: 14px 12px;
+            border: 1px solid #4b5563;
+            vertical-align: top;
+            word-break: break-word;
+            min-width: 130px;
+        }
+
+        .report-table tbody tr:nth-child(even) td {
+            background: #11182d;
+        }
+
+        .report-table tbody tr:hover td {
+            background: #1b2548;
+            transition: 0.3s ease;
+        }
+
+        .report-table th:first-child,
+        .report-table td:first-child {
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
+            text-align: center;
+        }
+
+        /* Problem Statement column = BIG WIDTH */
+        .report-table th:nth-child(5),
+        .report-table td:nth-child(5) {
+            min-width: 550px;
+            max-width: 650px;
+            width: 600px;
+        }
+
+        /* Picture Before */
+        .report-table th:nth-child(6),
+        .report-table td:nth-child(6) {
+            min-width: 180px;
+            width: 180px;
+            text-align: center;
+        }
+
+        /* Picture After */
+        .report-table th:nth-child(7),
+        .report-table td:nth-child(7) {
+            min-width: 180px;
+            width: 180px;
+            text-align: center;
+        }
+
+        /* Remaining small columns */
+        .report-table th:nth-child(2),
+        .report-table td:nth-child(2),
+        .report-table th:nth-child(3),
+        .report-table td:nth-child(3),
+        .report-table th:nth-child(4),
+        .report-table td:nth-child(4),
+        .report-table th:nth-child(8),
+        .report-table td:nth-child(8),
+        .report-table th:nth-child(9),
+        .report-table td:nth-child(9),
+        .report-table th:nth-child(10),
+        .report-table td:nth-child(10) {
+            min-width: 120px;
+            width: 120px;
+            text-align: center;
+        }
+
+    .table-preview-img {
+        width: 70px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #94a3b8;
+        display: block;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-track {
+        background: #0f172a;
+        border-radius: 10px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #64748b;
+        border-radius: 10px;
+    }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+    .no-data-cell {
+        text-align: center;
+        font-weight: 600;
+        color: #ffffff;
+        padding: 20px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        min-width: 70px;
+        text-align: center;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-size: 15px;
+        font-weight: 700;
+        background: transparent;
+        border: 2px solid;
+        letter-spacing: 0.3px;
+    }
+
+    .status-ongoing {
+        color: #f59e0b;
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.05);
+    }
+
+    .status-closed {
+        color: #22c55e;
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.05);
+    }
+
+    .status-drop {
+        color: #ef4444;
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .status-default {
+        color: #cbd5e1;
+        border-color: #cbd5e1;
+        background: rgba(255,255,255,0.03);
+    }
+
+    .checklist-table th:last-child,
+    .checklist-table td:last-child {
+        min-width: 180px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .clickable-img {
+        cursor: pointer;
+        transition: 0.4s ease;
+    }
+
+        .clickable-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+        }
+
+    .image-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+        background: rgba(7, 10, 20, 0);
+        backdrop-filter: blur(0px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.55s ease, background 0.55s ease, backdrop-filter 0.55s ease;
+    }
+
+        .image-modal.show {
+            opacity: 1;
+            visibility: visible;
+            background: rgba(7, 10, 20, 0.88);
+            backdrop-filter: blur(8px);
+        }
+
+    .modal-content {
+        max-width: 70vw;
+        max-height: 70vh;
+        border-radius: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        transform: scale(0.35);
+        opacity: 0;
+        transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease;
+    }
+
+    .image-modal.show .modal-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 80px;
+        right: 58px;
+        font-size: 25px;
+        font-weight: 700;
+        color: #ffffff;
+        cursor: pointer;
+        line-height: 1;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.12);
+        opacity: 1 !important;
+        transition: transform 0.35s ease, color 0.35s ease, background 0.35s ease;
+    }
+
+    .image-modal.show .close-modal {
+        opacity: 1 !important;
+        visibility: visible;
+    }
+
+    .close-modal:hover {
+        transform: rotate(90deg) scale(1.08);
+        color: #dbe4ff;
+        background: rgba(255,255,255,0.16);
+    }
+
+    @@media (max-width: 576px) {
+        .report-card {
+            padding: 16px;
+        }
+
+        .report-title {
+            font-size: 20px;
+        }
+    }
+
+    .checklist-card,
+    .custom-file-box,
+    .camera-box,
+    .save-btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .table-wrapper {
+        position: relative;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+    }
+
+    .checklist-card::before,
+    .custom-file-box::before,
+    .camera-box::before,
+    .save-btn::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient( 120deg, transparent 0%, rgba(255,255,255,0.14) 45%, transparent 70% );
+        transform: translateX(-130%);
+        transition: transform 0.8s ease;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .checklist-card:hover::before,
+    .custom-file-box:hover::before,
+    .camera-box:hover::before,
+    .save-btn:hover::before {
+        transform: translateX(130%);
+    }
+
+    .checklist-card:hover,
+    .camera-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.28), 0 0 30px rgba(96,165,250,0.10), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .save-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+    }
+
+    .checklist-card > *,
+    .custom-file-box > *,
+    .camera-box > *,
+    .save-btn > * {
+        position: relative;
+        z-index: 2;
+    }
+
+</style>

@@ -1,0 +1,908 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle at 10% 20%, rgba(59,130,246,0.22), transparent 30%), radial-gradient(circle at 85% 15%, rgba(168,85,247,0.18), transparent 30%), radial-gradient(circle at 50% 85%, rgba(14,165,233,0.14), transparent 35%), radial-gradient(circle at 90% 80%, rgba(236,72,153,0.12), transparent 30%), linear-gradient( 135deg, #020617 0%, #081028 18%, #0B1120 38%, #111827 62%, #1E1B4B 82%, #0F172A 100% ) !important;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background: linear-gradient( 120deg, rgba(255,255,255,0.03), transparent 30%, transparent 70%, rgba(255,255,255,0.02) );
+                pointer-events: none;
+                z-index: 0;
+            }
+
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background: #14162C;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow: visible;
+            transition: width 0.35s ease;
+            border-right: 1px solid rgba(255,255,255,0.12);
+            z-index: 1000;
+        }
+
+            .sidebar.closed {
+                width: 70px;
+            }
+
+        .logo {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            box-sizing: border-box;
+        }
+
+            .logo:hover {
+                background: #1D2545;
+            }
+
+        .logo-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-text {
+            color: white;
+            letter-spacing: 3px;
+            font-size: 20px;
+            font-weight: bold;
+            opacity: 1;
+            white-space: nowrap;
+            transition: opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
+            margin-right: 20px;
+        }
+
+        .sidebar.closed .logo-text {
+            opacity: 0;
+            width: 0;
+            margin-right: 0;
+            overflow: hidden;
+        }
+
+        .project-name {
+            font-weight: bold;
+            letter-spacing: 3px;
+            font-size: 20px;
+        }
+
+        .hamburger-icon {
+            width: 25px;
+            height: 18px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+            .hamburger-icon span {
+                position: absolute;
+                height: 3px;
+                width: 100%;
+                background: white;
+                border-radius: 2px;
+                transition: all 0.3s ease;
+                left: 0;
+            }
+
+                .hamburger-icon span:nth-child(1) {
+                    top: 0;
+                }
+
+                .hamburger-icon span:nth-child(2) {
+                    top: 7px;
+                    opacity: 1;
+                }
+
+                .hamburger-icon span:nth-child(3) {
+                    top: 14px;
+                }
+
+            .hamburger-icon.active span:nth-child(1) {
+                top: 7px;
+                transform: rotate(45deg);
+            }
+
+            .hamburger-icon.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger-icon.active span:nth-child(3) {
+                top: 7px;
+                transform: rotate(-45deg);
+            }
+
+        .menu {
+            padding-top: 10px;
+        }
+
+            .menu a {
+                margin-top: 8px;
+                display: flex;
+                align-items: center;
+                padding: 12px 15px;
+                color: white;
+                text-decoration: none;
+                position: relative;
+                transition: 0.2s;
+            }
+
+                .menu a i {
+                    width: 30px;
+                    text-align: center;
+                    font-size: 16px;
+                    min-width: 30px;
+                }
+
+                .menu a span {
+                    transition: 0.25s ease;
+                    opacity: 1;
+                    transform: translateX(0);
+                    white-space: nowrap;
+                }
+
+        .sidebar.closed .menu a span {
+            opacity: 0;
+            transform: translateX(-10px);
+            width: 0;
+            overflow: hidden;
+        }
+
+        .menu a:hover {
+            background: #1D2545;
+        }
+
+        .sidebar.closed .menu a::before {
+            content: "";
+            position: absolute;
+            left: 70px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-10px);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent #111 transparent transparent;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+
+        .sidebar.closed .menu a:hover::before {
+            opacity: 1;
+            transform: translateY(-50%) translateX(4px);
+        }
+
+        .sidebar.closed .menu a::after {
+            content: attr(data-title);
+            position: absolute;
+            left: 65px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-10px) scale(0.95);
+            background: #111;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 2000;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+        }
+
+        .sidebar.closed .menu a:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(8px) scale(1);
+        }
+
+        .header {
+            height: 60px;
+            background: #14162C;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            left: 220px;
+            right: 0;
+            transition: 0.35s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            z-index: 999;
+            box-sizing: border-box;
+        }
+
+            .header.expanded {
+                left: 70px;
+            }
+
+        .content {
+            margin-left: 220px;
+            margin-top: 60px;
+            padding: 20px;
+            transition: 0.35s ease;
+            background: transparent;
+            position: relative;
+            z-index: 2;
+        }
+
+            .content.expanded {
+                margin-left: 70px;
+            }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .welcome-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .profile {
+            position: relative;
+        }
+
+        .profile-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+            .profile-btn:hover {
+                color: #dcdcdc;
+            }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 48px;
+            right: 0;
+            width: 220px;
+            background: white;
+            color: #222;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.25s ease;
+        }
+
+            .profile-dropdown.active {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+        .profile-info {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eaeaea;
+            background: #f8f9fc;
+        }
+
+            .profile-info strong {
+                display: block;
+                font-size: 14px;
+                color: #14162C;
+                margin-bottom: 4px;
+            }
+
+            .profile-info small {
+                color: #666;
+                font-size: 12px;
+                word-break: break-word;
+            }
+
+        .profile-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #222;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+            .profile-dropdown a:hover {
+                background: #f2f4f8;
+            }
+
+            .profile-dropdown a i {
+                width: 18px;
+                text-align: center;
+            }
+
+        .profile-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 7, 20, 0.75);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.35s ease;
+        }
+
+            .profile-modal-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+        .profile-modal {
+            width: 430px;
+            max-width: 92%;
+            background: linear-gradient(145deg, rgba(20, 22, 44, 0.96), rgba(29, 37, 69, 0.96));
+            color: #fff;
+            border-radius: 26px;
+            padding: 28px;
+            position: relative;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            transform: scale(0.8) translateY(40px);
+            opacity: 0;
+            transition: 0.35s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .profile-modal-overlay.active .profile-modal {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .profile-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.25s ease;
+        }
+
+            .profile-modal-close:hover {
+                background: #ff4b5c;
+                transform: rotate(90deg);
+            }
+
+        .profile-modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 95px;
+            height: 95px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: linear-gradient(135deg, #00c896, #00a8ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 35px rgba(0, 168, 255, 0.45);
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+
+            .profile-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+            }
+
+            .profile-avatar i {
+                font-size: 42px;
+                color: white;
+            }
+
+        .profile-modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .profile-modal-header p {
+            margin: 6px 0 0;
+            color: #aeb8d4;
+            font-size: 14px;
+        }
+
+        .profile-modal-body {
+            display: grid;
+            gap: 14px;
+        }
+
+        .profile-data-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            transition: 0.25s ease;
+        }
+
+            .profile-data-card:hover {
+                transform: translateX(6px);
+                background: rgba(255, 255, 255, 0.13);
+            }
+
+            .profile-data-card i {
+                width: 42px;
+                height: 42px;
+                border-radius: 14px;
+                background: rgba(0, 168, 255, 0.18);
+                color: #00c8ff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+            }
+
+            .profile-data-card span {
+                display: block;
+                font-size: 12px;
+                color: #aeb8d4;
+                margin-bottom: 3px;
+            }
+
+            .profile-data-card strong {
+                font-size: 15px;
+                color: #ffffff;
+            }
+
+        html {
+            min-height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(59,130,246,0.22), transparent 30%), radial-gradient(circle at 85% 15%, rgba(168,85,247,0.18), transparent 30%), radial-gradient(circle at 50% 85%, rgba(14,165,233,0.14), transparent 35%), radial-gradient(circle at 90% 80%, rgba(236,72,153,0.12), transparent 30%), linear-gradient(135deg, #020617 0%, #081028 18%, #0B1120 38%, #111827 62%, #1E1B4B 82%, #0F172A 100%) !important;
+            background-attachment: fixed !important;
+        }
+
+        body,
+        .content,
+        .dashboard-wrapper {
+            background: transparent !important;
+        }
+
+        .sidebar,
+        .header {
+            background: rgba(20, 22, 44, 0.72) !important;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .sidebar,
+        .header {
+            /* overflow: hidden; */
+            position: fixed;
+            animation: glassEnter 0.9s cubic-bezier(.16, 1, .3, 1) both;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.14);
+            transition: width 0.45s cubic-bezier(.16, 1, .3, 1), left 0.45s cubic-bezier(.16, 1, .3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+
+        .sidebar {
+            overflow: hidden;
+        }
+
+        .header {
+            overflow: visible !important;
+        }
+
+            .header::before {
+                z-index: 0;
+            }
+
+            .header > * {
+                position: relative;
+                z-index: 2;
+            }
+
+        .profile {
+            position: relative;
+            z-index: 9999;
+        }
+
+        .profile-dropdown {
+            z-index: 10000 !important;
+            background: rgba(20, 22, 44, 0.96) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255,255,255,0.16);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+            .profile-dropdown a {
+                color: #ffffff !important;
+            }
+
+                .profile-dropdown a:hover {
+                    background: rgba(255,255,255,0.10) !important;
+                }
+
+            .sidebar::before,
+            .header::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient( 120deg, transparent 0%, rgba(255,255,255,0.18) 45%, transparent 70% );
+                transform: translateX(-130%);
+                transition: transform 0.9s ease;
+                pointer-events: none;
+                z-index: 1;
+            }
+
+            .sidebar:hover::before,
+            .header:hover::before {
+                transform: translateX(130%);
+            }
+
+            .sidebar:hover,
+            .header:hover {
+                box-shadow: 0 24px 70px rgba(0,0,0,0.42), 0 0 35px rgba(96,165,250,0.16), inset 0 1px 0 rgba(255,255,255,0.22);
+                border-color: rgba(255,255,255,0.28);
+            }
+
+            .sidebar > *,
+            .header > * {
+                position: relative;
+                z-index: 2;
+            }
+
+        .menu a {
+            border-radius: 14px;
+            margin-left: 8px;
+            margin-right: 8px;
+            overflow: hidden;
+        }
+
+            .menu a::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient( 90deg, transparent, rgba(255,255,255,0.16), transparent );
+                transform: translateX(-120%);
+                transition: transform 0.6s ease;
+                pointer-events: none;
+            }
+
+            .menu a:hover {
+                background: rgba(255,255,255,0.10) !important;
+                transform: translateX(5px);
+                box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.22);
+            }
+
+                .menu a:hover::after {
+                    transform: translateX(120%);
+                }
+
+                .menu a:hover i {
+                    animation: iconPulse 0.75s ease;
+                    color: #93C5FD;
+                    text-shadow: 0 0 16px rgba(147,197,253,0.75);
+                }
+
+        .profile-dropdown a {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            margin: 6px 8px;
+            transition: all 0.35s ease;
+        }
+
+            .profile-dropdown a::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient( 90deg, transparent, rgba(255,255,255,0.14), transparent );
+                transform: translateX(-120%);
+                transition: transform 0.65s ease;
+                pointer-events: none;
+            }
+
+            .profile-dropdown a:hover {
+                background: rgba(255,255,255,0.10) !important;
+                transform: translateX(6px);
+                box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10), 0 8px 22px rgba(0,0,0,0.22);
+            }
+
+                .profile-dropdown a:hover::before {
+                    transform: translateX(120%);
+                }
+
+                .profile-dropdown a:hover i {
+                    color: #93C5FD;
+                    text-shadow: 0 0 14px rgba(147,197,253,0.75);
+                    transform: scale(1.12);
+                    transition: all 0.35s ease;
+                }
+
+        .logo:hover .logo-text,
+        .header:hover .project-name {
+            animation: textGlow 1.4s ease-in-out infinite alternate;
+        }
+
+        .profile-btn:hover {
+            transform: scale(1.12) rotate(6deg);
+            color: #93C5FD;
+            text-shadow: 0 0 18px rgba(147,197,253,0.8);
+        }
+
+        .hamburger-icon:hover span {
+            box-shadow: 0 0 12px rgba(255,255,255,0.65);
+        }
+
+        @@keyframes glassEnter {
+            from {
+                opacity: 0;
+                transform: translateY(-18px);
+                filter: blur(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        @@keyframes iconPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            45% {
+                transform: scale(1.28) rotate(-8deg);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @@keyframes textGlow {
+            from {
+                text-shadow: 0 0 10px rgba(255,255,255,0.18);
+            }
+
+            to {
+                text-shadow: 0 0 18px rgba(255,255,255,0.45), 0 0 30px rgba(96,165,250,0.35);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar closed" id="sidebar">
+        <div class="logo" onclick="toggleSidebar()">
+            <div class="logo-content">
+                <span class="logo-text">E-MIL</span>
+
+                <div class="hamburger-icon" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu">
+            <a href="/Dashboard/Index" data-title="Dashboard">
+                <i class="fa fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/Checklist/Checklist" data-title="Checklist">
+                <i class="fa fa-tasks"></i>
+                <span>Checklist</span>
+            </a>
+
+            <a href="/Checklist/ChecklistRecords" data-title="Checklist Records">
+                <i class="fa fa-clipboard-list"></i>
+                <span>Checklist Records</span>
+            </a>
+
+            <a href="/Reports/Reports" data-title="Report">
+                <i class="fa fa-chart-bar"></i>
+                <span>Report</span>
+            </a>
+
+            <a href="/Checklist/A2Reports" data-title="A2 Report">
+                <i class="fa fa-file-alt"></i>
+                <span>A2 Report</span>
+            </a>
+            <a href="/Checklist/AuditHours" data-title="Audit Report">
+                <i class="fa fa-clock"></i>
+                <span>Audit Report</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="header expanded" id="header">
+        <div class="project-name">E-MIL Tracking System</div>
+
+        <div class="header-right">
+            <span class="welcome-text">Welcome @Context.Session.GetString("FullName")</span>
+
+            <div class="profile">
+                <button type="button" class="profile-btn" onclick="toggleProfileMenu(event)">
+                    <i class="fa fa-user-circle"></i>
+                </button>
+
+                <div class="profile-dropdown" id="profileMenu">
+                    <a href="javascript:void(0)" onclick="openProfileModal()">
+                        <i class="fa fa-user"></i>
+                        My Profile
+                    </a>
+                    <a asp-controller="Auth" asp-action="Registration">
+                        <i class="fa fa-user-plus"></i>
+                        Registration
+                    </a>
+
+                    <a href="/Auth/Login">
+                        <i class="fa fa-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="profile-modal-overlay" id="profileModalOverlay">
+        <div class="profile-modal">
+            <button class="profile-modal-close" onclick="closeProfileModal()">
+                <i class="fa fa-xmark"></i>
+            </button>
+
+            <div class="profile-modal-header">
+                <div class="profile-avatar">
+                    @if (!string.IsNullOrEmpty(Context.Session.GetString("ProfileImagePath")))
+                    {
+                        <img src="@Context.Session.GetString("ProfileImagePath")" alt="Profile Image" />
+                    }
+                    else
+                    {
+                        <i class="fa fa-user"></i>
+                    }
+                </div>
+
+                <h2>@Context.Session.GetString("FullName")</h2>
+                <p>@Context.Session.GetString("Role")</p>
+            </div>
+
+            <div class="profile-modal-body">
+                <div class="profile-data-card">
+                    <i class="fa fa-id-badge"></i>
+                    <div>
+                        <span>Employee ID</span>
+                        <strong>@Context.Session.GetString("EmpId")</strong>
+                    </div>
+                </div>
+
+                <div class="profile-data-card">
+                    <i class="fa fa-user"></i>
+                    <div>
+                        <span>Full Name</span>
+                        <strong>@Context.Session.GetString("FullName")</strong>
+                    </div>
+                </div>
+
+                <div class="profile-data-card">
+                    <i class="fa fa-briefcase"></i>
+                    <div>
+                        <span>Designation</span>
+                        <strong>@Context.Session.GetString("Designation")</strong>
+                    </div>
+                </div>
+
+                <div class="profile-data-card">
+                    <i class="fa fa-user-shield"></i>
+                    <div>
+                        <span>Role</span>
+                        <strong>@Context.Session.GetString("Role")</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content expanded" id="content">
+        @RenderBody()
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const content = document.getElementById("content");
+            const header = document.getElementById("header");
+            const hamburger = document.getElementById("hamburger");
+
+            sidebar.classList.toggle("closed");
+            content.classList.toggle("expanded");
+            header.classList.toggle("expanded");
+
+            if (sidebar.classList.contains("closed")) {
+                hamburger.classList.remove("active");
+            } else {
+                hamburger.classList.add("active");
+            }
+        }
+
+        function toggleProfileMenu(event) {
+            event.stopPropagation();
+            document.getElementById("profileMenu").classList.toggle("active");
+        }
+
+        window.addEventListener("click", function (e) {
+            const profileMenu = document.getElementById("profileMenu");
+            const profileArea = document.querySelector(".profile");
+
+            if (!profileArea.contains(e.target)) {
+                profileMenu.classList.remove("active");
+            }
+        });
+
+                function openProfileModal() {
+            document.getElementById("profileMenu").classList.remove("active");
+            document.getElementById("profileModalOverlay").classList.add("active");
+        }
+
+        function closeProfileModal() {
+            document.getElementById("profileModalOverlay").classList.remove("active");
+        }
+
+        document.getElementById("profileModalOverlay").addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeProfileModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeProfileModal();
+            }
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

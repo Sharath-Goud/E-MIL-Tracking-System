@@ -1,0 +1,1019 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="dashboard-wrapper">
+    
+    <div class="dashboard-top-bar">
+
+        <div class="dashboard-header">
+            <h4>Welcome to E-MIL Dashboard</h4>
+        </div>
+
+        <form method="get" asp-controller="Dashboard" asp-action="Index" class="filter-form">
+            <select name="month" class="filter-dropdown">
+                @for (int i = 1; i <= 12; i++)
+                {
+                    if (ViewBag.SelectedMonth == i)
+                    {
+                        <option value="@i" selected>
+                            @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@i">
+                            @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)
+                        </option>
+                    }
+                }
+            </select>
+
+            <select name="year" class="filter-dropdown">
+                @for (int y = DateTime.Now.Year - 5; y <= DateTime.Now.Year + 1; y++)
+                {
+                    if (ViewBag.SelectedYear == y)
+                    {
+                        <option value="@y" selected>@y</option>
+                    }
+                    else
+                    {
+                        <option value="@y">@y</option>
+                    }
+                }
+            </select>
+
+            <button type="submit" class="filter-btn">Apply Filter</button>
+        </form>
+
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>MIL Summary</h3>
+            <div id="milSummaryChart"></div>
+        </div>
+
+        <div class="chart-card">
+            <h3>MIL Audit Issue Severity</h3>
+            <div id="milSeverityChart"></div>
+        </div>
+
+        <div class="chart-card">
+            <h3>MIL Audit Category</h3>
+
+            <div class="chart-custom-legend">
+                <div class="legend-row">
+                    <span><span class="legend-dot dot-orange"></span>5S/ESD</span>
+                    <span><span class="legend-dot dot-purple"></span>Maintenance/calibration/settings</span>
+                </div>
+                <div class="legend-row">
+                    <span><span class="legend-dot dot-red"></span>SOP/SIP Compliance</span>
+                    <span><span class="legend-dot dot-yellow"></span>Others</span>
+                </div>
+            </div>
+
+            <div id="milAuditCategoryChart"></div>
+        </div>
+
+        <div class="chart-card">
+            <h3>MIL Audit Repeated Issues</h3>
+
+            <div class="chart-custom-legend">
+                <div class="legend-row">
+                    <span><span class="legend-dot dot-orange"></span>5S/ESD</span>
+                    <span><span class="legend-dot dot-purple"></span>Maintenance/calibration/settings</span>
+                </div>
+                <div class="legend-row">
+                    <span><span class="legend-dot dot-red"></span>SOP/SIP Compliance</span>
+                    <span><span class="legend-dot dot-yellow"></span>Others</span>
+                </div>
+            </div>
+
+            <div id="milRepeatedIssuesChart"></div>
+        </div>
+        <div class="chart-card wide-chart-card">
+            <h3>Line Audit Weekly Report</h3>
+            <div id="lineAuditWeeklyReportChart"></div>
+        </div>
+        <div class="chart-card wide-chart-card">
+            <h3>Weekly Audit R-Chart</h3>
+            <div id="weeklyAuditRChart"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const statusSummary = @Html.Raw(Json.Serialize(ViewBag.StatusSummary ?? new List<object>()));
+            const severityCategories = @Html.Raw(Json.Serialize(ViewBag.SeverityCategories ?? new List<string>()));
+            const severitySeries = @Html.Raw(Json.Serialize(ViewBag.SeveritySeries ?? new List<object>()));
+            const categoryCategories = @Html.Raw(Json.Serialize(ViewBag.CategoryCategories ?? new List<string>()));
+            const categorySeries = @Html.Raw(Json.Serialize(ViewBag.CategorySeries ?? new List<object>()));
+            const repeatedIssueDepartments = @Html.Raw(Json.Serialize(ViewBag.RepeatedIssueDepartments ?? new List<string>()));
+            const repeatedIssueSeries = @Html.Raw(Json.Serialize(ViewBag.RepeatedIssueSeries ?? new List<object>()));
+            const weeklyReportCategories = @Html.Raw(Json.Serialize(ViewBag.WeeklyReportCategories ?? new List<string>()));
+            const weeklyReportSeries = @Html.Raw(Json.Serialize(ViewBag.WeeklyReportSeries ?? new List<object>()));
+
+            const axisLabelColor = "#E5E7EB";
+            const gridColor = "rgba(255,255,255,0.10)";
+            const tooltipBg = "#111111";
+            const tooltipBorder = "#2A2A2A";
+            const cardBg = "transparent";
+
+                    const pieColors = [
+                        "rgba(251, 191, 36, 0.88)",   
+                        "rgba(34, 197, 94, 0.88)",    
+                        "rgba(248, 113, 113, 0.88)", 
+                        "rgba(96, 165, 250, 0.88)" 
+                    ];
+
+                    const severityColorMap = {
+                        "Minor": "rgba(34, 197, 94, 0.88)",
+                        "Major": "rgba(251, 191, 36, 0.88)",
+                        "Critical": "rgba(248, 113, 113, 0.88)"
+                    };
+
+                    const categoryColorMap = {
+                             "5S/ESD": "rgba(96, 165, 250, 0.88)",
+                            "Maintenance/calibration/settings": "rgba(167, 139, 250, 0.88)",
+                            "SOP/SIP Compliance": "rgba(251, 113, 133, 0.88)",
+                            "Others": "rgba(251, 146, 60, 0.88)"
+                    };
+
+            function tooltipOptions() {
+                return {
+                    useHTML: true,
+                    shared: true,
+                    backgroundColor: tooltipBg,
+                    borderColor: tooltipBorder,
+                    borderRadius: 8,
+                    shadow: false,
+                    padding: 0,
+                    style: { color: "#FFFFFF" },
+                    formatter: function () {
+                        let total = 0;
+                        let rows = "";
+
+                        this.points.forEach(function (p) {
+                            total += p.y;
+                            rows += `
+                                <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin:2px 0;">
+                                    <span style="color:${p.color}; font-size:12px;">●</span>
+                                    <span style="font-size:13px; color:#FFFFFF;">
+                                        ${p.series.name}: <b>${p.y}</b>
+                                    </span>
+                                </div>`;
+                        });
+
+                        return `
+                            <div style="text-align:center; padding:8px 12px; min-width:130px; background:#111111; color:#fff;">
+                                ${rows}
+                                <div style="font-size:13px; font-weight:600; margin-top:6px; color:#FFFFFF;">
+                                    Total: ${total}
+                                </div>
+                            </div>`;
+                    }
+                };
+            }
+
+            function yAxisOptions() {
+                return {
+                    min: 0,
+                    allowDecimals: false,
+                    title: { text: null },
+                    gridLineColor: gridColor,
+                    labels: {
+                        style: { color: axisLabelColor }
+                    }
+                };
+            }
+
+                  function stackedColumnOptions(pointWidthValue = null) {
+                    return {
+                        column: {
+                            stacking: "normal",
+                            pointWidth: pointWidthValue || 52,
+                            borderRadius: 6,
+                            pointPadding: 0.08,
+                            groupPadding: 0.18,
+                            borderWidth: 1,
+                            borderColor: "rgba(255,255,255,0.35)",
+                            shadow: false,
+                            dataLabels: {
+                                enabled: true,
+                                crop: false,
+                                overflow: "none",
+                                formatter: function () {
+                                    return this.y > 0 ? this.y : "";
+                                },
+                                style: {
+                                    textOutline: "none",
+                                    fontWeight: "700",
+                                    color: "#FFFFFF",
+                                    fontSize: "12px"
+                                }
+                            },
+                            animation: { duration: 1500 }
+                        },
+                        series: {
+                            animation: { duration: 1500 },
+                            states: {
+                                hover: { brightness: 0.18 }
+                            }
+                        }
+                    };
+                }
+
+            Highcharts.chart("milSummaryChart", {
+                chart: {
+                    type: "pie",
+                    backgroundColor: cardBg,
+                    animation: { duration: 1200 }
+                },
+                title: { text: null },
+                credits: { enabled: false },
+                accessibility: { enabled: false },
+                tooltip: {
+                    backgroundColor: tooltipBg,
+                    borderColor: tooltipBorder,
+                    style: { color: "#FFFFFF" },
+                    pointFormat: "<b style='color:#fff;'>{point.y}</b> <span style='color:#ddd;'>({point.percentage:.1f}%)</span>"
+                },
+                legend: {
+                    align: "right",
+                    verticalAlign: "top",
+                    layout: "vertical",
+                    itemStyle: {
+                        fontWeight: "500",
+                        color: "#FFFFFF"
+                    },
+                    itemHoverStyle: { color: "#FFFFFF" },
+                    itemHiddenStyle: { color: "#777" }
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: "pointer",
+                        borderWidth: 1,
+                        borderColor: "rgba(255,255,255,0.18)",
+                        shadow: false,
+                        size: "90%",
+                        slicedOffset: 5,
+                        dataLabels: {
+                            enabled: true,
+                            distance: -65,
+                            format: "{point.y}",
+                            style: {
+                                color: "#FFFFFF",
+                                textOutline: "none",
+                                fontWeight: "500",
+                                fontSize: "14px"
+                            }
+                        },
+                        showInLegend: true,
+                        animation: { duration: 1400 }
+                    }
+                },
+                series: [{
+                    name: "Count",
+                    colorByPoint: true,
+                    data: statusSummary.map((item, index) => ({
+                        name: item.name,
+                        y: item.y,
+                        color: pieColors[index % pieColors.length]
+                    }))
+                }]
+            });
+
+            Highcharts.chart("milSeverityChart", {
+                chart: {
+                    type: "column",
+                    backgroundColor: cardBg,
+                    animation: { duration: 1200 }
+                },
+                title: { text: null },
+                credits: { enabled: false },
+                accessibility: { enabled: false },
+                xAxis: {
+                    categories: severityCategories,
+                    lineColor: "#555",
+                    tickColor: "#555",
+                    labels: {
+                        style: { color: axisLabelColor }
+                    }
+                },
+                yAxis: yAxisOptions(),
+                legend: {
+                    align: "right",
+                    verticalAlign: "top",
+                    layout: "vertical",
+                    itemStyle: {
+                        fontWeight: "500",
+                        color: "#FFFFFF"
+                    },
+                    itemHoverStyle: { color: "#FFFFFF" },
+                    itemHiddenStyle: { color: "#777" }
+                },
+                tooltip: tooltipOptions(),
+                plotOptions: stackedColumnOptions(),
+                series: severitySeries.map(item => ({
+                    name: item.name,
+                    data: item.data,
+                    color: severityColorMap[item.name] || "rgba(59,130,246,0.58)"
+                }))
+            });
+
+            Highcharts.chart("milAuditCategoryChart", {
+                chart: {
+                    type: "column",
+                    backgroundColor: cardBg,
+                    animation: { duration: 1200 }
+                },
+                title: { text: null },
+                credits: { enabled: false },
+                accessibility: { enabled: false },
+                xAxis: {
+                    categories: categoryCategories,
+                    lineColor: "#555",
+                    tickColor: "#555",
+                    labels: {
+                        style: {
+                            color: axisLabelColor,
+                            fontSize: "12px"
+                        }
+                    }
+                },
+                yAxis: yAxisOptions(),
+                legend: { enabled: false },
+                tooltip: tooltipOptions(),
+                plotOptions: stackedColumnOptions(),
+                series: categorySeries.map(item => ({
+                    name: item.name,
+                    data: item.data,
+                    color: categoryColorMap[item.name] || "rgba(59,130,246,0.58)"
+                }))
+            });
+
+            Highcharts.chart("milRepeatedIssuesChart", {
+                chart: {
+                    type: "column",
+                    backgroundColor: cardBg,
+                    animation: { duration: 1200 }
+                },
+                title: { text: null },
+                credits: { enabled: false },
+                accessibility: { enabled: false },
+                xAxis: {
+                    categories: repeatedIssueDepartments,
+                    lineColor: "#555",
+                    tickColor: "#555",
+                    labels: {
+                        rotation: 0,
+                        style: {
+                            color: axisLabelColor,
+                            fontSize: "12px"
+                        }
+                    }
+                },
+                yAxis: yAxisOptions(),
+                legend: { enabled: false },
+                tooltip: tooltipOptions(),
+                plotOptions: stackedColumnOptions(),
+                series: repeatedIssueSeries.map(item => ({
+                    name: item.name,
+                    data: item.data,
+                    color: categoryColorMap[item.name] || "rgba(59,130,246,0.58)"
+                }))
+            });
+
+                           Highcharts.chart("lineAuditWeeklyReportChart", {
+            chart: {
+                type: "spline",
+                backgroundColor: "transparent",
+                animation: { duration: 1600 },
+                spacingTop: 35,
+                spacingRight: 30,
+                spacingBottom: 25,
+                spacingLeft: 20
+            },
+            title: { text: null },
+            credits: { enabled: false },
+            accessibility: { enabled: false },
+
+            xAxis: {
+                categories: weeklyReportCategories,
+                lineColor: "rgba(255,255,255,0.22)",
+                tickColor: "rgba(255,255,255,0.22)",
+                labels: {
+                    rotation: -45,
+                    style: {
+                        color: "#E5E7EB",
+                        fontSize: "11px",
+                        fontWeight: "600"
+                    }
+                }
+            },
+
+            yAxis: {
+                min: 0,
+                max: 60,
+                allowDecimals: false,
+                title: { text: null },
+                gridLineColor: "rgba(255,255,255,0.10)",
+                labels: {
+                    style: {
+                        color: "#E5E7EB",
+                        fontSize: "12px",
+                        fontWeight: "600"
+                    }
+                }
+            },
+
+            legend: {
+                enabled: true,
+                align: "right",
+                verticalAlign: "top",
+                itemStyle: {
+                    color: "#FFFFFF",
+                    fontWeight: "700"
+                },
+                itemHoverStyle: {
+                    color: "#FFFFFF"
+                }
+            },
+
+            tooltip: {
+                useHTML: true,
+                backgroundColor: "#050505",
+                borderColor: "rgba(255,255,255,0.16)",
+                borderRadius: 10,
+                shadow: false,
+                padding: 0,
+                formatter: function () {
+                    return `
+                        <div style="
+                            min-width:110px;
+                            padding:12px 14px;
+                            text-align:center;
+                            background:#050505;
+                            border-radius:10px;
+                            color:#fff;">
+                            <div style="font-size:13px;color:#ddd;margin-bottom:4px;">${this.x}</div>
+                            <div style="font-size:16px;font-weight:800;">
+                                Finding/Hour: ${this.y}
+                            </div>
+                        </div>`;
+                }
+            },
+
+            plotOptions: {
+                spline: {
+                    lineWidth: 4,
+                    color: "rgba(34,197,94,0.95)",
+                    marker: {
+                        enabled: true,
+                        symbol: "diamond",
+                        radius: 4,
+                        fillColor: "rgba(34,197,94,0.95)",
+                        lineWidth: 2,
+                        lineColor: "#FFFFFF"
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function () {
+                            return this.y > 0 ? this.y : "";
+                        },
+                        style: {
+                            color: "#FFFFFF",
+                            textOutline: "none",
+                            fontWeight: "800",
+                            fontSize: "12px"
+                        }
+                    },
+                    animation: { duration: 1800 },
+                    states: {
+                        hover: {
+                            lineWidth: 5,
+                            halo: {
+                                size: 10,
+                                opacity: 0.25
+                            }
+                        }
+                    }
+                }
+            },
+
+            series: [{
+                name: "Finding/Hour",
+                data: weeklyReportSeries.length > 0 ? weeklyReportSeries[0].data : [],
+                color: "rgba(34,197,94,0.95)"
+            }]
+        });
+
+                Highcharts.chart("weeklyAuditRChart", {
+            chart: {
+                type: "spline",
+                backgroundColor: cardBg,
+                animation: { duration: 1500 }
+            },
+            title: { text: null },
+            credits: { enabled: false },
+            accessibility: { enabled: false },
+            xAxis: {
+                categories: weeklyReportCategories,
+                lineColor: "#555",
+                tickColor: "#555",
+                labels: {
+                    rotation: -45,
+                    style: {
+                        color: axisLabelColor,
+                        fontSize: "11px"
+                    }
+                }
+            },
+            yAxis: {
+                min: 0,
+                max: 60,
+                tickInterval: 20,
+                title: { text: null },
+                gridLineColor: gridColor,
+                labels: {
+                    style: { color: axisLabelColor }
+                }
+            },
+            legend: {
+                align: "right",
+                verticalAlign: "top",
+                itemStyle: {
+                    color: "#FFFFFF",
+                    fontWeight: "600"
+                }
+            },
+            tooltip: {
+                useHTML: true,
+                backgroundColor: tooltipBg,
+                borderColor: tooltipBorder,
+                borderRadius: 10,
+                style: { color: "#FFFFFF" },
+                formatter: function () {
+                    return `
+                        <div style="padding:8px 12px;text-align:center;">
+                            <div style="font-size:13px;color:#ddd;">${this.x}</div>
+                            <div style="font-size:15px;font-weight:800;color:#fff;">
+                                Weekly Audit R-Chart: ${this.y}
+                            </div>
+                        </div>`;
+                }
+            },
+            plotOptions: {
+                spline: {
+                    lineWidth: 2,
+                    color: "rgba(96,165,250,0.95)",
+                    marker: {
+                        enabled: true,
+                        radius: 4,
+                        symbol: "circle",
+                        fillColor: "#FFFFFF",
+                        lineWidth: 2,
+                        lineColor: "rgba(96,165,250,0.95)"
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function () {
+                            return this.y;
+                        },
+                        style: {
+                            color: "#FFFFFF",
+                            textOutline: "none",
+                            fontWeight: "700",
+                            fontSize: "10px"
+                        }
+                    },
+                    animation: { duration: 1800 }
+                }
+            },
+            series: [{
+                name: "R-Chart",
+                data: weeklyReportSeries.length > 0 ? weeklyReportSeries[0].data : [],
+                color: "rgba(96,165,250,0.95)"
+            }]
+        });
+        });
+    </script>
+}
+
+<style>
+    body {
+        background: radial-gradient(circle at 10% 20%, rgba(59,130,246,0.22), transparent 30%), radial-gradient(circle at 85% 15%, rgba(168,85,247,0.18), transparent 30%), radial-gradient(circle at 50% 85%, rgba(14,165,233,0.14), transparent 35%), radial-gradient(circle at 90% 80%, rgba(236,72,153,0.12), transparent 30%), linear-gradient( 135deg, #020617 0%, #081028 18%, #0B1120 38%, #111827 62%, #1E1B4B 82%, #0F172A 100% ) !important;
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: #ffffff;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient( 120deg, rgba(255,255,255,0.03), transparent 30%, transparent 70%, rgba(255,255,255,0.02) );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+    .dashboard-wrapper {
+        min-height: 100vh;
+        padding: 22px;
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .dashboard-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+    }
+
+    .dashboard-header {
+        margin: 0;
+    }
+
+
+        .dashboard-header h4 {
+            margin: 0;
+            font-size: 28px;
+            color: #FFFFFF;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-shadow: 0 0 22px rgba(255,255,255,0.18);
+            white-space: nowrap;
+        }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(320px, 1fr));
+        gap: 26px;
+    }
+
+    .chart-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 24px;
+        padding: 18px 18px 12px;
+        box-shadow: 0 24px 70px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        transition: transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease;
+        animation: chartFadeUp 0.9s ease both;
+    }
+
+        .chart-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( 120deg, transparent 0%, rgba(255,255,255,0.18) 45%, transparent 70% );
+            transform: translateX(-120%);
+            transition: transform 0.8s ease;
+            pointer-events: none;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-8px) scale(1.015);
+            border-color: rgba(255,255,255,0.34);
+            box-shadow: 0 34px 90px rgba(0,0,0,0.48), 0 0 35px rgba(96,165,250,0.18), inset 0 1px 0 rgba(255,255,255,0.30);
+        }
+
+            .chart-card:hover::before {
+                transform: translateX(120%);
+            }
+
+        .chart-card h3 {
+            position: relative;
+            z-index: 2;
+            margin: 0 0 14px;
+            text-align: center;
+            font-size: 20px;
+            color: #FFFFFF;
+            font-weight: 700;
+            text-shadow: 0 0 18px rgba(255,255,255,0.16);
+        }
+
+    #milSummaryChart,
+    #milSeverityChart,
+    #milAuditCategoryChart,
+    #milRepeatedIssuesChart {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 380px;
+        background: transparent !important;
+        border-radius: 18px;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .highcharts-background {
+        fill: transparent !important;
+    }
+
+    .highcharts-container,
+    .highcharts-root {
+        background: transparent !important;
+    }
+
+    .chart-custom-legend {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 14px;
+        color: #E5E7EB;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .legend-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 22px;
+    }
+
+        .legend-row span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 12px currentColor;
+    }
+
+    .dot-orange {
+        background: rgba(96,165,250,0.85);
+    }
+
+    .dot-purple {
+        background: rgba(167,139,250,0.85);
+    }
+
+    .dot-red {
+        background: rgba(248,113,113,0.85);
+    }
+
+    .dot-yellow {
+        background: rgba(251,146,60,0.85);
+    }
+
+    @@keyframes chartFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(28px) scale(0.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .dashboard-top-bar
+
+    {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filter-form {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .dashboard-header h4 {
+        font-size: 24px;
+    }
+
+    }
+
+    @@media (max-width: 991px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+
+        #milSummaryChart,
+        #milSeverityChart,
+        #milAuditCategoryChart,
+        #milRepeatedIssuesChart {
+            height: 340px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .dashboard-wrapper {
+            padding: 14px;
+        }
+
+        .dashboard-header h4 {
+            font-size: 24px;
+        }
+
+        .chart-card {
+            padding: 14px;
+            border-radius: 18px;
+        }
+
+        #milSummaryChart,
+        #milSeverityChart,
+        #milAuditCategoryChart,
+        #milRepeatedIssuesChart {
+            height: 300px;
+        }
+    }
+
+    .highcharts-series,
+    .highcharts-point {
+        transition: transform 0.35s ease, opacity 0.35s ease, filter 0.35s ease;
+        transform-origin: center;
+    }
+
+        .highcharts-point:hover {
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.35)) drop-shadow(0 0 18px currentColor);
+            opacity: 1;
+        }
+
+        .highcharts-series:hover .highcharts-point {
+            opacity: 0.92;
+        }
+
+    .highcharts-data-label text {
+        animation: labelPop 0.8s ease both;
+    }
+
+    .chart-card:hover .highcharts-point {
+        filter: drop-shadow(0 0 8px rgba(255,255,255,0.22));
+    }
+
+    .chart-card:hover h3 {
+        animation: premiumTitleGlow 1.6s ease-in-out infinite alternate;
+    }
+
+    .highcharts-grid-line {
+        animation: gridFade 1.4s ease both;
+    }
+
+    .highcharts-axis-labels text {
+        animation: axisFadeUp 0.8s ease both;
+    }
+
+    @@keyframes labelPop {
+        from {
+            opacity: 0;
+            transform: scale(0.75);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @@keyframes premiumTitleGlow {
+        from {
+            text-shadow: 0 0 12px rgba(255,255,255,0.16);
+        }
+
+        to {
+            text-shadow: 0 0 18px rgba(255,255,255,0.35), 0 0 28px rgba(96,165,250,0.25);
+        }
+    }
+
+    @@keyframes gridFade {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes axisFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .filter-form {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 0;
+    }
+
+    .filter-dropdown {
+        min-width: 145px;
+        padding: 12px 18px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.28);
+        background: rgba(255,255,255,0.10);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
+        outline: none;
+        cursor: pointer;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.20);
+        transition: all 0.35s ease;
+    }
+
+        .filter-dropdown:hover,
+        .filter-dropdown:focus {
+            border-color: rgba(96,165,250,0.75);
+            background: rgba(255,255,255,0.16);
+            box-shadow: 0 0 22px rgba(96,165,250,0.28), 0 12px 34px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.28);
+            transform: translateY(-2px);
+        }
+
+        .filter-dropdown option {
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 14px;
+            padding: 12px;
+        }
+
+    .filter-btn {
+        padding: 12px 24px;
+        border-radius: 14px;
+        border: 1px solid rgba(96,165,250,0.55);
+        background: rgba(37,99,235,0.16);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 10px 30px rgba(37,99,235,0.20), inset 0 1px 0 rgba(255,255,255,0.18);
+        transition: all 0.35s ease;
+    }
+
+        .filter-btn:hover {
+            background: rgba(37,99,235,0.30);
+            border-color: rgba(147,197,253,0.85);
+            box-shadow: 0 0 24px rgba(96,165,250,0.35), 0 14px 36px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.28);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+    #lineAuditWeeklyReportChart,
+    #weeklyAuditRChart {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 330px;
+        background: transparent !important;
+        border-radius: 18px;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    @@media (max-width: 991px) {
+        .wide-chart-card
+
+    {
+        grid-column: span 1;
+    }
+
+    }
+
+</style>
