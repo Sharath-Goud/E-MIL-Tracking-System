@@ -23,7 +23,10 @@ namespace E_MIL_Tracking_system.Services
                 _smtpSettings.SenderEmail
             ));
 
-            email.To.Add(MailboxAddress.Parse(toEmail));
+            foreach (var emailAddress in toEmail.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                email.To.Add(MailboxAddress.Parse(emailAddress.Trim()));
+            }
             email.Subject = subject;
 
             var bodyBuilder = new BodyBuilder
@@ -38,24 +41,28 @@ namespace E_MIL_Tracking_system.Services
             await smtp.ConnectAsync(
                 _smtpSettings.Host,
                 _smtpSettings.Port,
-                SecureSocketOptions.StartTls
+                SecureSocketOptions.None
             );
 
-            await smtp.AuthenticateAsync(
-                _smtpSettings.Username,
-                _smtpSettings.Password
-            );
+            //if (!string.IsNullOrWhiteSpace(_smtpSettings.Username) &&
+            //    !string.IsNullOrWhiteSpace(_smtpSettings.Password))
+            //{
+            //    await smtp.AuthenticateAsync(
+            //        _smtpSettings.Username,
+            //        _smtpSettings.Password
+            //    );
+            //}
 
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
 
         public async Task SendEmailWithInlineImagesAsync(
-    string toEmail,
-    string subject,
-    string htmlBody,
-    string? beforeImageFullPath,
-    string? afterImageFullPath)
+            string toEmail,
+            string subject,
+            string htmlBody,
+            string? beforeImageFullPath,
+            string? afterImageFullPath)
         {
             var email = new MimeMessage();
 
@@ -64,7 +71,10 @@ namespace E_MIL_Tracking_system.Services
                 _smtpSettings.SenderEmail
             ));
 
-            email.To.Add(MailboxAddress.Parse(toEmail));
+            foreach (var emailAddress in toEmail.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                email.To.Add(MailboxAddress.Parse(emailAddress.Trim()));
+            }
             email.Subject = subject;
 
             var builder = new BodyBuilder();
@@ -105,15 +115,19 @@ namespace E_MIL_Tracking_system.Services
             using var smtp = new SmtpClient();
 
             await smtp.ConnectAsync(
-                _smtpSettings.Host,
-                _smtpSettings.Port,
-                SecureSocketOptions.StartTls
-            );
+                 _smtpSettings.Host,
+                 _smtpSettings.Port,
+                 SecureSocketOptions.None
+             );
 
-            await smtp.AuthenticateAsync(
-                _smtpSettings.Username,
-                _smtpSettings.Password
-            );
+            //if (!string.IsNullOrWhiteSpace(_smtpSettings.Username) &&
+            //    !string.IsNullOrWhiteSpace(_smtpSettings.Password))
+            //{
+            //    await smtp.AuthenticateAsync(
+            //        _smtpSettings.Username,
+            //        _smtpSettings.Password
+            //    );
+            //}
 
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);

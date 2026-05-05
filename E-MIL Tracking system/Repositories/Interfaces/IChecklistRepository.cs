@@ -12,5 +12,10 @@ namespace E_MIL_Tracking_system.Repositories.Interfaces
         Task UpdateAfterImageAsync(int id, string afterImagePath);
         Task UpdateStatusAsync(int id, string status);
         Task<List<AuditHourDto>> GetAuditHoursAsync();
+        Task DeleteApprovalsAsync(int checklistId);
+        Task InsertApprovalAsync(int checklistId, string email);
+        Task MarkAcceptedAsync(int checklistId, string email);
+        Task MarkRejectedAsync(int checklistId, string email);
+        Task<bool> AreAllAcceptedAsync(int checklistId);
     }
 }   

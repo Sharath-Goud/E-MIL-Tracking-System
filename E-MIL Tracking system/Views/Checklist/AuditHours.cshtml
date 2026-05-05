@@ -5,25 +5,30 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 
     var today = DateTime.Today;
+    int currentYear = today.Year;
 
-    if (today.DayOfWeek == DayOfWeek.Sunday)
+    int currentWeek = System.Globalization.ISOWeek.GetWeekOfYear(today);
+    int selectedWeek = currentWeek;
+
+    if (Context.Request.Query.ContainsKey("week"))
     {
-        today = today.AddDays(1);
+        int.TryParse(Context.Request.Query["week"], out selectedWeek);
     }
 
-    int daysFromMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
-    var monday = today.AddDays(-daysFromMonday);
+    if (selectedWeek <= 0 || selectedWeek > 52)
+    {
+        selectedWeek = currentWeek;
+    }
 
-    var culture = System.Globalization.CultureInfo.CurrentCulture;
-    int weekNumber = culture.Calendar.GetWeekOfYear(
-        monday,
-        System.Globalization.CalendarWeekRule.FirstFourDayWeek,
+    var monday = System.Globalization.ISOWeek.ToDateTime(
+        currentYear,
+        selectedWeek,
         DayOfWeek.Monday
     );
 
     var dates = new List<string>
     {
-        $"WK{weekNumber}/{monday:dd-MMM}"
+        $"WK-{selectedWeek:00}/{monday:dd-MMM}"
     };
 
     for (int i = 1; i <= 5; i++)
@@ -35,7 +40,7 @@
 
     int weeklyTotal = Model.ChecklistRecords.Count(x =>
         x.Date.HasValue &&
-        x.Date.Value.Date == monday.Date 
+        x.Date.Value.Date == monday.Date
     );
 
     totalFinding.Add(weeklyTotal.ToString());
@@ -61,10 +66,10 @@
     }).ToList();
 
     decimal totalFindingSum = totalFinding.Sum(x =>
-        {
-    decimal.TryParse(x, out var value);
-    return value;
-        });
+    {
+        decimal.TryParse(x, out var value);
+        return value;
+    });
 
     decimal auditHourSum = auditHr.Sum(x =>
     {
@@ -77,9 +82,7 @@
     if (auditHourSum > 0)
     {
         decimal result = totalFindingSum / auditHourSum;
-
         decimal truncatedResult = Math.Floor(result * 10) / 10;
-
         finalFindingPerHour = truncatedResult.ToString("0.0");
     }
 
@@ -87,6 +90,7 @@
     {
         "", "", "", "", "", finalFindingPerHour
     };
+
     string finalRValue = "";
 
     var validFindingHrValues = findingHr
@@ -103,18 +107,15 @@
     {
         decimal maxValue = validFindingHrValues.Max();
         decimal minValue = validFindingHrValues.Min();
-
         decimal rResult = maxValue - minValue;
-
         decimal truncatedR = Math.Floor(rResult * 10) / 10;
-
         finalRValue = truncatedR.ToString("0.0");
     }
 
     var rValue = new List<string>
-{
-    "", "", "", "", "", finalRValue
-};
+    {
+        "", "", "", "", "", finalRValue
+    };
 }
 
 <div class="audit-hours-page">
@@ -123,11 +124,18 @@
             <h3 class="audit-title">Audit Hours</h3>
 
             <div class="audit-filter-buttons">
-                <select class="audit-dropdown" onchange="showAuditData(this.value)">
-                    <option value="week1">Week 1</option>
-                    <option value="week2">Week 2</option>
-                    <option value="week3">Week 3</option>
-                    <option value="total">Total</option>
+                <select class="audit-dropdown" onchange="changeWeek(this.value)">
+                    @for (int wk = 1; wk <= 52; wk++)
+                    {
+                        if (selectedWeek == wk)
+                        {
+                            <option value="@wk" selected>WK-@wk.ToString("00")</option>
+                        }
+                        else
+                        {
+                            <option value="@wk">WK-@wk.ToString("00")</option>
+                        }
+                    }
                 </select>
             </div>
         </div>
@@ -161,18 +169,16 @@
                             bool isWeekColumn = i == 0;
                             bool isFutureDate = false;
 
-                            DateTime parsedDate;
-
                             if (!isWeekColumn)
                             {
-                                var fullDateText = dates[i] + "-" + DateTime.Today.Year;
+                                var fullDateText = dates[i] + "-" + currentYear;
 
                                 if (DateTime.TryParseExact(
                                 fullDateText,
                                 "dd-MMM-yyyy",
                                 System.Globalization.CultureInfo.InvariantCulture,
                                 System.Globalization.DateTimeStyles.None,
-                                out parsedDate))
+                                out DateTime parsedDate))
                                 {
                                     if (parsedDate.Date > DateTime.Today.Date)
                                     {
@@ -238,10 +244,8 @@
 </div>
 
 <script>
-        function showAuditData(type) {
-        if (type !== "week1") {
-            alert(type + " data will be shown here.");
-        }
+    function changeWeek(week) {
+        window.location.href = "/Checklist/AuditHours?week=" + week;
     }
 </script>
 
@@ -286,25 +290,57 @@
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        position: relative;
     }
 
-    .audit-filter-btn {
-        border: 1px solid rgba(255,255,255,0.18);
-        background: rgba(255,255,255,0.10);
+        .audit-filter-buttons::after {
+            content: "\f078";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ffffff;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+    .audit-dropdown {
+        min-width: 180px;
+        height: 45px;
+        padding: 0 42px 0 16px;
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.14);
         color: #ffffff;
-        padding: 9px 18px;
-        border-radius: 10px;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
+        outline: none;
         cursor: pointer;
-        transition: 0.3s ease;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 22px rgba(0,0,0,0.18);
     }
 
-        .audit-filter-btn:hover,
-        .audit-filter-btn.active {
+        .audit-dropdown:hover {
+            background: rgba(255,255,255,0.20);
+            border-color: rgba(255,255,255,0.35);
+        }
+
+        .audit-dropdown:focus {
             background: #ffffff;
             color: #000000;
-            transform: translateY(-2px);
+            border-color: #ffffff;
+        }
+
+        .audit-dropdown option {
+            background: #1D2545;
+            color: #ffffff;
+            font-weight: 600;
         }
 
     .audit-table-wrapper {
@@ -396,6 +432,12 @@
             background: #94a3b8;
         }
 
+    .audit-hour-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     .audit-input {
         width: 100%;
         height: 42px;
@@ -409,6 +451,7 @@
         box-sizing: border-box;
         transition: all 0.25s ease;
         text-align: left;
+        flex: 1;
     }
 
         .audit-input::placeholder {
@@ -426,16 +469,6 @@
             border-color: #6b7fd7;
             box-shadow: 0 0 0 3px rgba(107, 127, 215, 0.18);
             background: #ffffff;
-        }
-
-    .audit-hour-form {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-        .audit-hour-form .audit-input {
-            flex: 1;
         }
 
     .audit-tick-btn {
@@ -485,58 +518,4 @@
         .saved-input::placeholder {
             color: transparent;
         }
-
-    .audit-dropdown {
-        min-width: 180px;
-        height: 45px;
-        padding: 0 42px 0 16px;
-        border: 1px solid rgba(255,255,255,0.22);
-        border-radius: 12px;
-        background: rgba(255,255,255,0.14);
-        color: #ffffff;
-        font-size: 14px;
-        font-weight: 700;
-        outline: none;
-        cursor: pointer;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 22px rgba(0,0,0,0.18);
-    }
-
-    .audit-filter-buttons {
-        position: relative;
-    }
-
-        .audit-filter-buttons::after {
-            content: "\f078";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #ffffff;
-            font-size: 12px;
-            pointer-events: none;
-        }
-
-    .audit-dropdown:hover {
-        background: rgba(255,255,255,0.20);
-        border-color: rgba(255,255,255,0.35);
-    }
-
-    .audit-dropdown:focus {
-        background: #ffffff;
-        color: #000000;
-        border-color: #ffffff;
-    }
-
-    .audit-dropdown option {
-        background: #1D2545;
-        color: #ffffff;
-        font-weight: 600;
-    }
 </style>

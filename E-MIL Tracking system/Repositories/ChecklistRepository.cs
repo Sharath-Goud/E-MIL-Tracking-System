@@ -272,5 +272,91 @@ namespace E_MIL_Tracking_system.Repositories
 
             return list;
         }
+
+        public async Task DeleteApprovalsAsync(int checklistId)
+        {
+            using var con = _db.CreateConnection();
+            string query = "DELETE FROM ChecklistApprovalStatus WHERE ChecklistId = @ChecklistId";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task InsertApprovalAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        INSERT INTO ChecklistApprovalStatus (ChecklistId, Email, IsAccepted, IsRejected)
+        VALUES (@ChecklistId, @Email, 0, 0)";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task MarkAcceptedAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        UPDATE ChecklistApprovalStatus
+        SET IsAccepted = 1,
+            IsRejected = 0,
+            ActionDate = GETDATE()
+        WHERE ChecklistId = @ChecklistId AND Email = @Email";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task MarkRejectedAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        UPDATE ChecklistApprovalStatus
+        SET IsAccepted = 0,
+            IsRejected = 1,
+            ActionDate = GETDATE()
+        WHERE ChecklistId = @ChecklistId AND Email = @Email";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<bool> AreAllAcceptedAsync(int checklistId)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        SELECT 
+            CASE 
+                WHEN COUNT(*) > 0 
+                     AND SUM(CASE WHEN IsAccepted = 1 THEN 1 ELSE 0 END) = COUNT(*)
+                THEN 1 
+                ELSE 0 
+            END
+        FROM ChecklistApprovalStatus
+        WHERE ChecklistId = @ChecklistId";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+
+            await con.OpenAsync();
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) == 1;
+        }
     }
 }

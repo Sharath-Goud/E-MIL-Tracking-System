@@ -44,16 +44,13 @@
 
                                 <td>
                                     <strong>Issue : @item.Line : @item.StationName</strong><br />
-
+                                    <strong>Problem Statement :</strong><br />
                                     @item.ProblemStatement
                                     <br /><br />
 
-                                    <strong>Root Cause</strong><br />
+                                    <strong>Root Cause Corrective Action : </strong><br />
                                     @(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")
-                                    <br /><br />
-
-                                    <strong>Corrective Action</strong><br />
-                                    @(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")
+                              
                                 </td>
 
                                 <td>

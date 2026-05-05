@@ -1,16 +1,20 @@
 ﻿using E_MIL_Tracking_system.DTOs;
 using E_MIL_Tracking_system.DTOs.Checklist;
 using E_MIL_Tracking_system.Repositories.Interfaces;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace E_MIL_Tracking_system.Services
 {
     public class ChecklistService
     {
         private readonly IChecklistRepository _repo;
+        private readonly IConfiguration _configuration;
 
-        public ChecklistService(IChecklistRepository repo)
+        public ChecklistService(IChecklistRepository repo, IConfiguration configuration)
         {
             _repo = repo;
+            _configuration = configuration;
         }
 
         public async Task<int> SaveAsync(CreateChecklistDto dto, string webRootPath)
@@ -100,6 +104,47 @@ namespace E_MIL_Tracking_system.Services
             }
 
             await _repo.UpdateStatusAsync(id, status);
+        }
+
+        public async Task ResetApprovalsAsync(int checklistId, List<string> emails)
+        {
+            await _repo.DeleteApprovalsAsync(checklistId);
+
+            foreach (var email in emails)
+            {
+                await _repo.InsertApprovalAsync(checklistId, email);
+            }
+        }
+
+        public async Task MarkAcceptedAsync(int checklistId, string email)
+        {
+            await _repo.MarkAcceptedAsync(checklistId, email);
+        }
+
+        public async Task<bool> AreAllAcceptedAsync(int checklistId)
+        {
+            return await _repo.AreAllAcceptedAsync(checklistId);
+        }
+
+        public async Task MarkRejectedAsync(int checklistId, string email)
+        {
+            await _repo.MarkRejectedAsync(checklistId, email);
+        }
+
+        public async Task MarkDueReminderSentAsync(int id)
+        {
+            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            string query = @"
+        UPDATE ChecklistRecords
+        SET DueReminderSent = 1
+        WHERE Id = @Id";
+
+            using SqlCommand cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
         }
     }
 }

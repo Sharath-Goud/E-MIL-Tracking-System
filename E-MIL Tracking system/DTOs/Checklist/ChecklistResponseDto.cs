@@ -24,5 +24,6 @@
         public string? Rcca { get; set; }
         public string? AfterImagePath { get; set; }
         public string? Status { get; set; }
+        public bool DueReminderSent { get; set; }
     }
 }
