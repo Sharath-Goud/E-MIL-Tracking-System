@@ -44,6 +44,13 @@
                 }
             </select>
 
+            <select name="week" class="filter-dropdown">
+                <option value="1" selected="@(ViewBag.SelectedWeek == 1)">Week - 1</option>
+                <option value="2" selected="@(ViewBag.SelectedWeek == 2)">Week - 2</option>
+                <option value="3" selected="@(ViewBag.SelectedWeek == 3)">Week - 3</option>
+                <option value="4" selected="@(ViewBag.SelectedWeek == 4)">Week - 4</option>
+            </select>
+
             <button type="submit" class="filter-btn">Apply Filter</button>
         </form>
 
@@ -119,6 +126,8 @@
             const repeatedIssueSeries = @Html.Raw(Json.Serialize(ViewBag.RepeatedIssueSeries ?? new List<object>()));
             const weeklyReportCategories = @Html.Raw(Json.Serialize(ViewBag.WeeklyReportCategories ?? new List<string>()));
             const weeklyReportSeries = @Html.Raw(Json.Serialize(ViewBag.WeeklyReportSeries ?? new List<object>()));
+            const weeklyRChartSeries = @Html.Raw(Json.Serialize(ViewBag.WeeklyRChartSeries ?? new List<object>()));
+            const weeklyFindingPerHourSeries = @Html.Raw(Json.Serialize(ViewBag.WeeklyFindingPerHourSeries ?? new List<object>()));
 
             const axisLabelColor = "#E5E7EB";
             const gridColor = "rgba(255,255,255,0.10)";
@@ -126,16 +135,9 @@
             const tooltipBorder = "#2A2A2A";
             const cardBg = "transparent";
 
-                    const pieColors = [
-                        "rgba(251, 191, 36, 0.88)",   
-                        "rgba(34, 197, 94, 0.88)",    
-                        "rgba(248, 113, 113, 0.88)", 
-                        "rgba(96, 165, 250, 0.88)" 
-                    ];
-
                     const severityColorMap = {
                         "Minor": "rgba(34, 197, 94, 0.88)",
-                        "Major": "rgba(251, 191, 36, 0.88)",
+                        "Major": "rgba(251, 146, 60, 0.88)",
                         "Critical": "rgba(248, 113, 113, 0.88)"
                     };
 
@@ -185,6 +187,8 @@
             function yAxisOptions() {
                 return {
                     min: 0,
+                    max: 20,              
+                    tickInterval: 2,
                     allowDecimals: false,
                     title: { text: null },
                     gridLineColor: gridColor,
@@ -208,7 +212,10 @@
                             dataLabels: {
                                 enabled: true,
                                 crop: false,
-                                overflow: "none",
+                                overflow: "allow",     
+                                allowOverlap: true,    
+                                inside: true,         
+                                verticalAlign: "middle",
                                 formatter: function () {
                                     return this.y > 0 ? this.y : "";
                                 },
@@ -230,67 +237,81 @@
                     };
                 }
 
-            Highcharts.chart("milSummaryChart", {
-                chart: {
-                    type: "pie",
-                    backgroundColor: cardBg,
-                    animation: { duration: 1200 }
-                },
-                title: { text: null },
-                credits: { enabled: false },
-                accessibility: { enabled: false },
-                tooltip: {
-                    backgroundColor: tooltipBg,
-                    borderColor: tooltipBorder,
-                    style: { color: "#FFFFFF" },
-                    pointFormat: "<b style='color:#fff;'>{point.y}</b> <span style='color:#ddd;'>({point.percentage:.1f}%)</span>"
-                },
-                legend: {
-                    align: "right",
-                    verticalAlign: "top",
-                    layout: "vertical",
-                    itemStyle: {
-                        fontWeight: "500",
-                        color: "#FFFFFF"
-                    },
-                    itemHoverStyle: { color: "#FFFFFF" },
-                    itemHiddenStyle: { color: "#777" }
-                },
-                plotOptions: {
-                    pie: {
-                        allowPointSelect: true,
-                        cursor: "pointer",
-                        borderWidth: 1,
-                        borderColor: "rgba(255,255,255,0.18)",
-                        shadow: false,
-                        size: "90%",
-                        slicedOffset: 5,
-                        dataLabels: {
-                            enabled: true,
-                            distance: -65,
-                            format: "{point.y}",
-                            style: {
-                                color: "#FFFFFF",
-                                textOutline: "none",
-                                fontWeight: "500",
-                                fontSize: "14px"
-                            }
-                        },
-                        showInLegend: true,
-                        animation: { duration: 1400 }
-                    }
-                },
-                series: [{
-                    name: "Count",
-                    colorByPoint: true,
-                    data: statusSummary.map((item, index) => ({
-                        name: item.name,
-                        y: item.y,
-                        color: pieColors[index % pieColors.length]
-                    }))
-                }]
-            });
+                       const pieColors = [
+            "rgba(34, 197, 94, 0.88)",
+            "rgba(251, 146, 60, 0.88)",
+            "rgba(248, 113, 113, 0.88)"
+        ];
 
+        Highcharts.chart("milSummaryChart", {
+            chart: {
+                type: "pie",
+                backgroundColor: cardBg,
+                animation: { duration: 1200 }
+            },
+            title: { text: null },
+            credits: { enabled: false },
+            accessibility: { enabled: false },
+            tooltip: {
+                backgroundColor: tooltipBg,
+                borderColor: tooltipBorder,
+                style: { color: "#FFFFFF" },
+                pointFormatter: function () {
+                    return `<b style="color:#fff;">${this.y}</b>
+                            <span style="color:#ddd;"> (${this.percentage.toFixed(1)}%)</span>`;
+                }
+            },
+            legend: {
+                align: "right",
+                verticalAlign: "top",
+                layout: "vertical",
+                itemStyle: {
+                    fontWeight: "500",
+                    color: "#FFFFFF"
+                },
+                itemHoverStyle: { color: "#FFFFFF" },
+                itemHiddenStyle: { color: "#777" }
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: "pointer",
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.18)",
+                    shadow: false,
+                    size: "90%",
+                    slicedOffset: 5,
+                    dataLabels: {
+                        enabled: true,
+                        distance: -65,
+                        formatter: function () {
+                            return this.y > 0 ? this.y : "";
+                        },
+                        style: {
+                            color: "#FFFFFF",
+                            textOutline: "none",
+                            fontWeight: "500",
+                            fontSize: "14px"
+                        }
+                    },
+                    showInLegend: true,
+                    animation: { duration: 1400 }
+                }
+            },
+            series: [{
+                name: "Count",
+                colorByPoint: true,
+                data: ["Closed", "Ongoing", "Drop"].map((status, index) => {
+                    const found = statusSummary.find(x => x.name === status);
+
+                    return {
+                        name: status,
+                        y: found ? found.y : 0,
+                        color: pieColors[index]
+                    };
+                })
+            }]
+        });
             Highcharts.chart("milSeverityChart", {
                 chart: {
                     type: "column",
@@ -392,7 +413,7 @@
                 }))
             });
 
-                           Highcharts.chart("lineAuditWeeklyReportChart", {
+            Highcharts.chart("lineAuditWeeklyReportChart", {
             chart: {
                 type: "spline",
                 backgroundColor: "transparent",
@@ -422,7 +443,8 @@
 
             yAxis: {
                 min: 0,
-                max: 60,
+                max: 50,
+                tickInterval: 10,
                 allowDecimals: false,
                 title: { text: null },
                 gridLineColor: "rgba(255,255,255,0.10)",
@@ -511,12 +533,12 @@
 
             series: [{
                 name: "Finding/Hour",
-                data: weeklyReportSeries.length > 0 ? weeklyReportSeries[0].data : [],
+                data: weeklyFindingPerHourSeries.length > 0 ? weeklyFindingPerHourSeries[0].data : [],
                 color: "rgba(34,197,94,0.95)"
             }]
         });
 
-                Highcharts.chart("weeklyAuditRChart", {
+         Highcharts.chart("weeklyAuditRChart", {
             chart: {
                 type: "spline",
                 backgroundColor: cardBg,
@@ -539,8 +561,8 @@
             },
             yAxis: {
                 min: 0,
-                max: 60,
-                tickInterval: 20,
+                max: 50,
+                tickInterval: 10,
                 title: { text: null },
                 gridLineColor: gridColor,
                 labels: {
@@ -600,11 +622,13 @@
             },
             series: [{
                 name: "R-Chart",
-                data: weeklyReportSeries.length > 0 ? weeklyReportSeries[0].data : [],
+                data: weeklyRChartSeries.length > 0 ? weeklyRChartSeries[0].data : [],
                 color: "rgba(96,165,250,0.95)"
             }]
+            });
         });
-        });
+                console.log("weeklyRChartSeries:", weeklyRChartSeries);
+        console.log("weeklyFindingPerHourSeries:", weeklyFindingPerHourSeries);
     </script>
 }
 

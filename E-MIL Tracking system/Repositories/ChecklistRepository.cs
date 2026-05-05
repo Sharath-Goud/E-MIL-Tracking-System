@@ -1,4 +1,5 @@
 ﻿using E_MIL_Tracking_system.Data;
+using E_MIL_Tracking_system.DTOs;
 using E_MIL_Tracking_system.DTOs.Checklist;
 using E_MIL_Tracking_system.Repositories.Interfaces;
 using Microsoft.Data.SqlClient;
@@ -209,6 +210,153 @@ namespace E_MIL_Tracking_system.Repositories
             cmd.Parameters.AddWithValue("@Status", status);
 
             await cmd.ExecuteNonQueryAsync();
+        }
+
+        private DateTime? ParseAuditDate(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            text = text.Trim();
+
+            if (text.StartsWith("WK"))
+            {
+                var parts = text.Split('/');
+
+                if (parts.Length == 2)
+                    text = parts[1];
+            }
+
+            if (DateTime.TryParseExact(
+                text + "-" + DateTime.Now.Year,
+                "dd-MMM-yyyy",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var date))
+            {
+                return date.Date;
+            }
+
+            return null;
+        }
+
+        public async Task<List<AuditHourDto>> GetAuditHoursAsync()
+        {
+            var list = new List<AuditHourDto>();
+
+            using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
+            using var cmd = new SqlCommand(@"
+                SELECT AuditDate, AuditHour
+                FROM AuditHours
+            ", con);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                list.Add(new AuditHourDto
+                {
+                    AuditDate = reader["AuditDate"] == DBNull.Value
+                    ? ""
+                    : reader["AuditDate"].ToString(),
+
+                                ParsedDate = ParseAuditDate(reader["AuditDate"]?.ToString()),
+
+                                AuditHour = reader["AuditHour"] == DBNull.Value
+                    ? 0
+                    : Convert.ToDecimal(reader["AuditHour"])
+                });
+            }
+
+            return list;
+        }
+
+        public async Task DeleteApprovalsAsync(int checklistId)
+        {
+            using var con = _db.CreateConnection();
+            string query = "DELETE FROM ChecklistApprovalStatus WHERE ChecklistId = @ChecklistId";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task InsertApprovalAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        INSERT INTO ChecklistApprovalStatus (ChecklistId, Email, IsAccepted, IsRejected)
+        VALUES (@ChecklistId, @Email, 0, 0)";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task MarkAcceptedAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        UPDATE ChecklistApprovalStatus
+        SET IsAccepted = 1,
+            IsRejected = 0,
+            ActionDate = GETDATE()
+        WHERE ChecklistId = @ChecklistId AND Email = @Email";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task MarkRejectedAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        UPDATE ChecklistApprovalStatus
+        SET IsAccepted = 0,
+            IsRejected = 1,
+            ActionDate = GETDATE()
+        WHERE ChecklistId = @ChecklistId AND Email = @Email";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<bool> AreAllAcceptedAsync(int checklistId)
+        {
+            using var con = _db.CreateConnection();
+            string query = @"
+        SELECT 
+            CASE 
+                WHEN COUNT(*) > 0 
+                     AND SUM(CASE WHEN IsAccepted = 1 THEN 1 ELSE 0 END) = COUNT(*)
+                THEN 1 
+                ELSE 0 
+            END
+        FROM ChecklistApprovalStatus
+        WHERE ChecklistId = @ChecklistId";
+
+            using var cmd = new SqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+
+            await con.OpenAsync();
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) == 1;
         }
     }
 }

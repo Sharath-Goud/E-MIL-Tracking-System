@@ -109,31 +109,31 @@ namespace E_MIL_Tracking_system.Controllers
                             </p>
 
                             <div style='overflow-x:auto; width:100%;'>
-                                <table cellpadding='0' cellspacing='0'
-                                       style='border-collapse:collapse; width:100%; min-width:1300px; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
+                                 <table cellpadding='0' cellspacing='0'
+                                    style='border-collapse:collapse; width:100%; min-width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
 
-                                    <thead>
+                                     <thead>
                                         <tr style='background:#d7e5e1; color:#111827;'>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>S.NO</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Date</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Week<br/>Code</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Month</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Project</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Section</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Line</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Station Name</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700; min-width:180px;'>Problem Statement</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Frequency</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Issue<br/>Severity</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Category</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700; min-width:160px;'>Corrective Action</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Due Date</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>CM DRI</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Apple DRI</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Type of Audit</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Status</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>Before Image</th>
-                                            <th style='border:1px solid #c4cfd4; padding:10px 8px; font-weight:700;'>After Image</th>
+                                            <th style='width:60px; border:1px solid #c4cfd4; padding:10px 8px;'>S.NO</th>
+                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Date</th>
+                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Week<br/>Code</th>
+                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Month</th>
+                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Project</th>
+                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Section</th>
+                                            <th style='width:80px; border:1px solid #c4cfd4; padding:10px 8px;'>Line</th>
+                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Station Name</th>
+                                            <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Problem Statement</th>
+                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Frequency</th>
+                                            <th style='width:110px; border:1px solid #c4cfd4; padding:10px 8px;'>Issue<br/>Severity</th>
+                                            <th style='width:150px; border:1px solid #c4cfd4; padding:10px 8px;'>Category</th>
+                                            <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Corrective Action</th>
+                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Due Date</th>
+                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>CM DRI</th>
+                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Apple DRI</th>
+                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Type of Audit</th>
+                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Status</th>
+                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Before Image</th>
+                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>After Image</th>
                                         </tr>
                                     </thead>
 
@@ -151,7 +151,7 @@ namespace E_MIL_Tracking_system.Controllers
                                             <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Frequency}</td>
                                             <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
                                             <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Category}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5;'>{(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}</td>
+                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5; font-weight:600;'>{(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}</td>
                                             <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
                                             <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.CmDri}</td>
                                             <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.AppleDri}</td>
@@ -188,10 +188,13 @@ namespace E_MIL_Tracking_system.Controllers
                 );
             }
 
+            //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
+            // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
+            // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
             _emailQueue.QueueEmail(async cancellationToken =>
             {
                 await _emailService.SendEmailWithInlineImagesAsync(
-                    "sharathgoud1717@gmail.com",
+                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
                     subject,
                     body,
                     beforeImageFullPath,
@@ -250,10 +253,9 @@ namespace E_MIL_Tracking_system.Controllers
                                 RCCA has been updated for the below MIL audit point. Please review the corrective action details.
                             </p>
 
-                            <div style='width:1500px; max-width:none;'>
+                            <div style='overflow-x:auto; width:100%;'>
                                 <table cellpadding='0' cellspacing='0'
-                                       width='1500'
-                                       style='border-collapse:collapse; width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
+                                    style='border-collapse:collapse; width:100%; min-width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
 
                                     <thead>
                                         <tr style='background:#d7e5e1; color:#111827;'>
@@ -331,11 +333,13 @@ namespace E_MIL_Tracking_system.Controllers
                     savedRecord.AfterImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
                 );
             }
-
+            //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
+            // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
+            // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
             _emailQueue.QueueEmail(async cancellationToken =>
             {
                 await _emailService.SendEmailWithInlineImagesAsync(
-                    "sharathgoud1717@gmail.com",
+                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
                     subject,
                     body,
                     beforeImageFullPath,
@@ -379,79 +383,30 @@ namespace E_MIL_Tracking_system.Controllers
                 return RedirectToAction(nameof(ChecklistRecords));
             }
 
-            await _service.UploadAfterImageAsync(id, afterImage, _env.WebRootPath);
 
+            string baseUrl = "http://10.52.16.17:5222";
+
+            await _service.UploadAfterImageAsync(id, afterImage, _env.WebRootPath);
+            await _service.UpdateStatusAsync(id, "Ongoing");
             var savedRecord = await _service.GetByIdAsync(id);
 
-            string baseUrl = "https://localhost:7089";
 
-            string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={id}";
-            string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={id}";
+            if (savedRecord == null)
+            {
+                TempData["ErrorMessage"] = "Record not found after image upload.";
+                return RedirectToAction(nameof(ChecklistRecords));
+            }
+            //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
+            // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
+            // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
+            var recipients = new List<string>
+            {
+                "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com"
+            };
+
+            await _service.ResetApprovalsAsync(id, recipients);
 
             string subject = $"MIL Audit Review Required - {DateTime.Now:dd-MM-yyyy}";
-
-            string body = $@"
-                <html>
-                <body style='font-family:Arial; background:#f7f7f7; padding:20px;'>
-
-                    <h2>MIL Audit Review</h2>
-
-                    <p>Hi Team,</p>
-
-                    <p>
-                        After Image has been uploaded successfully for the below audit point.
-                        Please review and take action.
-                    </p>
-
-                    <table border='1' cellpadding='10' cellspacing='0'
-                           style='border-collapse:collapse; width:100%; text-align:center;'>
-
-                        <tr style='background:#d7e5e1;'>
-                            <th>Section</th>
-                            <th>Station Name</th>
-                            <th>Problem Statement</th>
-                            <th>RCCA</th>
-                            <th>Status</th>
-                        </tr>
-
-                        <tr>
-                            <td>{savedRecord.Section}</td>
-                            <td>{savedRecord.StationName}</td>
-                            <td>{savedRecord.ProblemStatement}</td>
-                            <td>{savedRecord.Rcca}</td>
-                            <td>{savedRecord.Status}</td>
-                        </tr>
-                    </table>
-
-                    <br /><br />
-
-                    <a href='{approveUrl}'
-                       style='background:#22c55e;
-                              color:white;
-                              padding:14px 28px;
-                              text-decoration:none;
-                              border-radius:8px;
-                              font-weight:700;
-                              margin-right:15px;'>
-                        ACCEPT
-                    </a>
-
-                    <a href='{rejectUrl}'
-                       style='background:#ef4444;
-                              color:white;
-                              padding:14px 28px;
-                              text-decoration:none;
-                              border-radius:8px;
-                              font-weight:700;'>
-                        REJECT
-                    </a>
-
-                    <br /><br />
-
-                    <p>This is an automated mail from E-MIL Tracking System.</p>
-
-                </body>
-                </html>";
 
             string? beforeImagePath = null;
             string? afterImagePath = null;
@@ -474,16 +429,141 @@ namespace E_MIL_Tracking_system.Controllers
                 );
             }
 
-            _emailQueue.QueueEmail(async cancellationToken =>
+            foreach (var recipient in recipients)
             {
-                await _emailService.SendEmailWithInlineImagesAsync(
-                    "sharathgoud1717@gmail.com",
-                    subject,
-                    body,
-                    beforeImagePath,
-                    afterImagePath
-                );
-            });
+                string encodedEmail = Uri.EscapeDataString(recipient);
+
+                string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={id}&email={encodedEmail}";
+                string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={id}&email={encodedEmail}";
+
+                string body = $@"
+                <html>
+                <body style='font-family:Arial; background:#f7f7f7; padding:20px;'>
+
+                    <h2>MIL Audit Review</h2>
+
+                    <p>Hi Team,</p>
+
+                    <p>
+                        After Image has been uploaded successfully for the below audit point.
+                        Please review and take action.
+                    </p>
+
+                    <div style='overflow-x:auto; width:100%;'>
+
+                        <table cellpadding='0' cellspacing='0'
+                               style='border-collapse:collapse;
+                                      width:100%;
+                                      min-width:1500px;
+                                      table-layout:fixed;
+                                      font-size:12px;
+                                      text-align:center;
+                                      border:1px solid #d1d5db;'>
+
+                            <thead>
+                                <tr style='background:#d7e5e1; color:#111827;'>
+
+                                    <th style='width:60px; border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
+                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Date</th>
+                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Week Code</th>
+                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Month</th>
+                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Project</th>
+                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Section</th>
+                                    <th style='width:80px; border:1px solid #c4cfd4; padding:10px;'>Line</th>
+                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
+                                    <th style='width:220px; border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
+                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
+                                    <th style='width:110px; border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
+                                    <th style='width:150px; border:1px solid #c4cfd4; padding:10px;'>Category</th>
+                                    <th style='width:220px; border:1px solid #c4cfd4; padding:10px;'>Corrective Action</th>
+                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
+                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
+                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
+                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
+                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Status</th>
+                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
+                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>After Image</th>
+
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr style='background:#ffffff;'>
+
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>1</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.WeekCode}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Month}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px; font-weight:600;'>{savedRecord.Project}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Section}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Line}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.StationName}</td>
+
+                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:left;'>
+                                        {savedRecord.ProblemStatement}
+                                    </td>
+
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Frequency}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Category}</td>
+
+                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:left;'>
+                                        {(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}
+                                    </td>
+
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.CmDri}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.AppleDri}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.TypeOfAudit}</td>
+
+                                    <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>
+                                        Ongoing
+                                    </td>
+
+                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:center; vertical-align:middle;'>
+                                        BEFORE_IMAGE_PLACEHOLDER
+                                    </td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:center; vertical-align:middle;'>
+                                        AFTER_IMAGE_PLACEHOLDER
+                                    </td>
+
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <br />
+
+                    <table role='presentation' style='margin-top:20px;'>
+                        <tr>
+                            <td bgcolor='#22c55e' style='border-radius:6px;'>
+                                <a href='{approveUrl}' style='color:#fff; padding:15px; text-decoration:none; font-weight:bold;'>ACCEPT</a>
+                            </td>
+
+                            <td style='width:15px;'></td>
+
+                            <td bgcolor='#ef4444' style='border-radius:6px;'>
+                                <a href='{rejectUrl}' style='color:#fff; padding:15px; text-decoration:none; font-weight:bold;'>REJECT</a>
+                            </td>
+                        </tr>
+                    </table>
+
+                </body>
+                </html>";
+
+                _emailQueue.QueueEmail(async cancellationToken =>
+                {
+                    await _emailService.SendEmailWithInlineImagesAsync(
+                        recipient,
+                        subject,
+                        body,
+                        beforeImagePath,
+                        afterImagePath
+                    );
+                });
+            }
 
             TempData["SuccessMessage"] =
                 "After Image uploaded successfully and approval mail sent.";
@@ -492,21 +572,33 @@ namespace E_MIL_Tracking_system.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ApproveFromEmail(int id)
+        public async Task<IActionResult> ApproveFromEmail(int id, string email)
         {
-            await _service.UpdateStatusAsync(id, "Closed");
+            await _service.MarkAcceptedAsync(id, email);
 
-            TempData["SuccessMessage"] = "Checklist approved successfully. Status updated to CLOSED.";
+            bool allAccepted = await _service.AreAllAcceptedAsync(id);
+
+            if (allAccepted)
+            {
+                await _service.UpdateStatusAsync(id, "Closed");
+                TempData["SuccessMessage"] = "All users accepted. Status updated to CLOSED.";
+            }
+            else
+            {
+                await _service.UpdateStatusAsync(id, "Ongoing");
+                TempData["SuccessMessage"] = "Accepted successfully. Waiting for other users.";
+            }
 
             return View("ApprovalResult");
         }
 
         [HttpGet]
-        public async Task<IActionResult> RejectFromEmail(int id)
+        public async Task<IActionResult> RejectFromEmail(int id, string email)
         {
+            await _service.MarkRejectedAsync(id, email);
             await _service.UpdateStatusAsync(id, "Ongoing");
 
-            TempData["ErrorMessage"] = "Checklist rejected successfully. Status updated to ONGOING.";
+            TempData["ErrorMessage"] = "Rejected successfully. Status remains ONGOING.";
 
             return View("ApprovalResult");
         }
@@ -591,5 +683,6 @@ namespace E_MIL_Tracking_system.Controllers
             TempData["SuccessMessage"] = "Audit hour saved successfully.";
             return RedirectToAction(nameof(AuditHours));
         }
+
     }
 }

@@ -32,26 +32,50 @@ namespace E_MIL_Tracking_system.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int? month, int? year)
+        public async Task<IActionResult> Index(int? month, int? year, int? week)
         {
             var records = await _service.GetAllAsync();
 
             int selectedMonth = month ?? DateTime.Now.Month;
             int selectedYear = year ?? DateTime.Now.Year;
+            int selectedWeekFilter = week ?? 1;
+
+            if (selectedWeekFilter < 1 || selectedWeekFilter > 4)
+            {
+                selectedWeekFilter = 1;
+            }
 
             ViewBag.SelectedMonth = selectedMonth;
             ViewBag.SelectedYear = selectedYear;
+            ViewBag.SelectedWeek = selectedWeekFilter;
 
-            var validRecords = records
+            var monthlyRecords = records
                 .Where(x => x.Date.HasValue &&
                             x.Date.Value.Month == selectedMonth &&
                             x.Date.Value.Year == selectedYear)
                 .ToList();
 
-            var dateLabels = validRecords
-                .OrderBy(x => x.Date)
-                .Select(x => x.Date!.Value.ToString("M/dd"))
-                .Distinct()
+            var firstDayOfMonth = new DateTime(selectedYear, selectedMonth, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+            var selectedWeekStart = firstDayOfMonth.AddDays((selectedWeekFilter - 1) * 7);
+
+            var chartDates = Enumerable.Range(0, 7)
+                .Select(i => selectedWeekStart.AddDays(i).Date)
+                .Where(d =>
+                    d.Month == selectedMonth &&
+                    d.Year == selectedYear &&
+                    d.DayOfWeek != DayOfWeek.Sunday)
+                .Take(6)
+                .ToList();
+
+            var validRecords = monthlyRecords
+                .Where(x => x.Date.HasValue &&
+                            chartDates.Contains(x.Date.Value.Date))
+                .ToList();
+
+            var dateLabels = chartDates
+                .Select(d => d.ToString("M-dd"))
                 .ToList();
 
             ViewBag.StatusSummary = validRecords
@@ -70,9 +94,10 @@ namespace E_MIL_Tracking_system.Controllers
                 .Select(severity => new
                 {
                     name = severity,
-                    data = dateLabels.Select(date =>
+                    data = chartDates.Select(chartDate =>
                         validRecords.Count(x =>
-                            x.Date!.Value.ToString("M/dd") == date &&
+                            x.Date.HasValue &&
+                            x.Date.Value.Date == chartDate &&
                             string.Equals(x.IssueSeverity?.Trim(), severity, StringComparison.OrdinalIgnoreCase)
                         )
                     ).ToList()
@@ -93,9 +118,10 @@ namespace E_MIL_Tracking_system.Controllers
                 .Select(category => new
                 {
                     name = category,
-                    data = dateLabels.Select(date =>
+                    data = chartDates.Select(chartDate =>
                         validRecords.Count(x =>
-                            x.Date!.Value.ToString("M/dd") == date &&
+                            x.Date.HasValue &&
+                            x.Date.Value.Date == chartDate &&
                             NormalizeCategory(x.Category) == category
                         )
                     ).ToList()
@@ -105,37 +131,47 @@ namespace E_MIL_Tracking_system.Controllers
             ViewBag.RepeatedIssueDepartments = dateLabels;
 
             ViewBag.RepeatedIssueSeries = categoryNames
-                .Select(category => new
-                {
-                    name = category,
-                    data = dateLabels.Select(date =>
-                        validRecords.Count(x =>
-                            x.Date!.Value.ToString("M/dd") == date &&
-                            NormalizeCategory(x.Category) == category &&
-                            validRecords.Count(y =>
-                                y.Date!.Value.ToString("M/dd") == date &&
-                                NormalizeCategory(y.Category) == category &&
-                                string.Equals(y.StationName?.Trim(), x.StationName?.Trim(), StringComparison.OrdinalIgnoreCase)
-                            ) > 1
-                        )
-                    ).ToList()
-                })
-                .ToList();
-
-            var selectedDate = new DateTime(selectedYear, selectedMonth, 1);
-            var selectedWeek = System.Globalization.ISOWeek.GetWeekOfYear(selectedDate);
-
-            var weekNumbers = Enumerable.Range(selectedWeek, 26)
-                .Where(w => w <= 52)
-                .ToList();
-
-            var weeklyData = weekNumbers.Select(week => new
+            .Select(category => new
             {
-                Week = week,
-                Count = records.Count(x =>
+                name = category,
+                data = chartDates.Select(chartDate =>
+                    validRecords.Count(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date == chartDate &&
+                        string.Equals(x.IssueType?.Trim(), "Repeated", StringComparison.OrdinalIgnoreCase) && 
+                        NormalizeCategory(x.Category) == category
+                    )
+                ).ToList()
+            })
+            .ToList();
+
+            int daysToMonday =
+                ((int)DayOfWeek.Monday - (int)firstDayOfMonth.DayOfWeek + 7) % 7;
+
+            var firstMonday = firstDayOfMonth.AddDays(daysToMonday);
+
+            var weekNumbers = Enumerable.Range(0, 4)
+                .Select(i =>
+                {
+                    var weekStart = firstMonday.AddDays(i * 7);
+
+                    if (weekStart > lastDayOfMonth)
+                    {
+                        return (int?)null;
+                    }
+
+                    return System.Globalization.ISOWeek.GetWeekOfYear(weekStart);
+                })
+                .Where(w => w.HasValue)
+                .Select(w => w!.Value)
+                .ToList();
+
+            var weeklyData = weekNumbers.Select(weekNo => new
+            {
+                Week = weekNo,
+                Count = monthlyRecords.Count(x =>
                     x.Date.HasValue &&
-                    x.Date.Value.Year == selectedYear &&
-                    System.Globalization.ISOWeek.GetWeekOfYear(x.Date.Value) == week)
+                    System.Globalization.ISOWeek.GetWeekOfYear(x.Date.Value) == weekNo)
             }).ToList();
 
             ViewBag.WeeklyReportCategories = weeklyData
@@ -144,12 +180,118 @@ namespace E_MIL_Tracking_system.Controllers
 
             ViewBag.WeeklyReportSeries = new[]
             {
-                new
+        new
+        {
+            name = "Finding/Hour",
+            data = weeklyData.Select(x => x.Count).ToList()
+        }
+    };
+
+            var auditHours = await _service.GetAuditHoursAsync();
+
+            var weeklyFindingPerHourData = weekNumbers.Select(weekNo =>
+            {
+                var weekStart = System.Globalization.ISOWeek.ToDateTime(
+                    selectedYear,
+                    weekNo,
+                    DayOfWeek.Monday
+                );
+
+                decimal totalFindingSum = 0;
+                decimal auditHourSum = 0;
+
+                for (int i = 0; i <= 5; i++)
                 {
-                    name = "Finding/Hour",
-                    data = weeklyData.Select(x => x.Count).ToList()
+                    var currentDate = weekStart.AddDays(i).Date;
+
+                    int dayFinding = records.Count(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date == currentDate);
+
+                    totalFindingSum += dayFinding;
+
+                    var savedAudit = auditHours.FirstOrDefault(x =>
+                        x.ParsedDate.HasValue &&
+                        x.ParsedDate.Value.Date == currentDate);
+
+                    if (savedAudit != null)
+                    {
+                        auditHourSum += savedAudit.AuditHour;
+                    }
                 }
-            };
+
+                if (auditHourSum > 0)
+                {
+                    decimal result = totalFindingSum / auditHourSum;
+                    return Math.Floor(result * 10) / 10;
+                }
+
+                return 0;
+            }).ToList();
+
+            ViewBag.WeeklyFindingPerHourSeries = new[]
+            {
+        new
+        {
+            name = "Finding/Hour",
+            data = weeklyFindingPerHourData
+        }
+    };
+
+            var weeklyRData = weekNumbers.Select(weekNo =>
+            {
+                var weekStart = System.Globalization.ISOWeek.ToDateTime(
+                    selectedYear,
+                    weekNo,
+                    DayOfWeek.Monday
+                );
+
+                var findingPerHourValues = new List<decimal>();
+
+                for (int i = 0; i <= 5; i++)
+                {
+                    var currentDate = weekStart.AddDays(i).Date;
+
+                    int dayFinding = records.Count(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date == currentDate);
+
+                    var savedAudit = auditHours.FirstOrDefault(x =>
+                        x.ParsedDate.HasValue &&
+                        x.ParsedDate.Value.Date == currentDate);
+
+                    if (savedAudit != null && savedAudit.AuditHour > 0)
+                    {
+                        decimal findingPerHour = dayFinding / savedAudit.AuditHour;
+                        decimal truncated = Math.Floor(findingPerHour * 10) / 10;
+
+                        if (truncated > 0)
+                        {
+                            findingPerHourValues.Add(truncated);
+                        }   
+                    }
+                }
+
+                if (findingPerHourValues.Any())
+                {
+                    decimal maxValue = findingPerHourValues.Max();
+                    decimal minValue = findingPerHourValues.Min();
+
+                    decimal rValue = maxValue - minValue;
+                    return Math.Floor(rValue * 10) / 10;
+                }
+
+                return 0;
+            }).ToList();
+
+            ViewBag.WeeklyRChartSeries = new[]
+            {
+        new
+        {
+            name = "R-Chart",
+            data = weeklyRData
+        }
+    };
 
             return View();
         }

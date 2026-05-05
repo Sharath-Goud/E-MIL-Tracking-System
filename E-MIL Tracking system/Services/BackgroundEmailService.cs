@@ -4,13 +4,16 @@
     {
         private readonly IBackgroundEmailQueue _emailQueue;
         private readonly ILogger<BackgroundEmailService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public BackgroundEmailService(
             IBackgroundEmailQueue emailQueue,
-            ILogger<BackgroundEmailService> logger)
+            ILogger<BackgroundEmailService> logger,
+            IServiceScopeFactory scopeFactory)
         {
             _emailQueue = emailQueue;
             _logger = logger;
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

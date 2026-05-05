@@ -23,9 +23,10 @@ builder.Services.Configure<SmtpSettings>(
     builder.Configuration.GetSection("SmtpSettings")
 );
 
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddSingleton<IBackgroundEmailQueue, BackgroundEmailQueue>();
 builder.Services.AddHostedService<BackgroundEmailService>();
+builder.Services.AddHostedService<DueDateReminderService>();
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment())

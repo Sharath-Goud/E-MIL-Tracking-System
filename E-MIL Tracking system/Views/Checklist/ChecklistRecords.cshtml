@@ -192,12 +192,13 @@
                         else
                         {
                             <tr>
-                                <td colspan="17" class="no-data-cell">No checklist records found.</td>
+                                <td colspan="18" class="no-data-cell">No checklist records found.</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            <div class="records-pagination" id="recordsPagination"></div>
         </div>
     </div>
 
@@ -397,14 +398,115 @@
     });
 
         function updateFileName(input, id) {
-        const fileNameSpan = document.getElementById("fileName_" + id);
+            const fileNameSpan = document.getElementById("fileName_" + id);
 
-        if (input.files.length > 0) {
-            fileNameSpan.textContent = input.files[0].name;
-        } else {
-            fileNameSpan.textContent = "No Image Chosen";
+            if (input.files.length > 0) {
+                fileNameSpan.textContent = input.files[0].name;
+            } else {
+                fileNameSpan.textContent = "No Image Chosen";
+            }
         }
-    }
+
+            document.addEventListener("DOMContentLoaded", function () {
+        const rowsPerPage = 10;
+        const tableBody = document.getElementById("checklistTableBody");
+        const pagination = document.getElementById("recordsPagination");
+
+        if (!tableBody || !pagination) return;
+
+        const rows = Array.from(tableBody.querySelectorAll("tr.clickable-row"));
+        let currentPage = 1;
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+        function showPage() {
+            rows.forEach((row, index) => {
+                row.style.display =
+                    index >= (currentPage - 1) * rowsPerPage &&
+                    index < currentPage * rowsPerPage
+                        ? ""
+                        : "none";
+
+                if (row.style.display !== "none") {
+                    row.querySelector("td:first-child").textContent = index + 1;
+                }
+            });
+
+            buildPagination();
+        }
+
+        function buildPagination() {
+            pagination.innerHTML = "";
+
+            if (totalPages <= 1) return;
+
+            pagination.appendChild(makeBtn("← Prev", "page-nav-btn", currentPage === 1, function () {
+                currentPage--;
+                showPage();
+            }));
+
+            getPages().forEach(page => {
+                if (page === "...") {
+                    const dots = document.createElement("span");
+                    dots.className = "page-dots";
+                    dots.textContent = "...";
+                    pagination.appendChild(dots);
+                } else {
+                    const btn = makeBtn(page, "page-number-btn", false, function () {
+                        currentPage = page;
+                        showPage();
+                    });
+
+                    if (page === currentPage) btn.classList.add("active");
+                    pagination.appendChild(btn);
+                }
+            });
+
+            pagination.appendChild(makeBtn("Next →", "page-nav-btn", currentPage === totalPages, function () {
+                currentPage++;
+                showPage();
+            }));
+        }
+
+        function makeBtn(text, className, disabled, clickFn) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = className;
+            btn.textContent = text;
+            btn.disabled = disabled;
+
+            btn.onclick = function () {
+                if (!disabled) clickFn();
+            };
+
+            return btn;
+        }
+
+        function getPages() {
+            const pages = [];
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+                return pages;
+            }
+
+            pages.push(1);
+
+            if (currentPage > 4) pages.push("...");
+
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+
+            for (let i = start; i <= end; i++) pages.push(i);
+
+            if (currentPage < totalPages - 3) pages.push("...");
+
+            pages.push(totalPages);
+
+            return pages;
+        }
+
+        showPage();
+    });
 </script>
 <script>
     const inlineCameraStreams = {};
@@ -1119,4 +1221,86 @@
             background: rgba(255,255,255,0.18);
             transform: translateY(-2px);
         }
+
+        .records-pagination {
+        margin-top: 15px;
+        padding: 18px 10px 4px;
+        display: flex;
+        justify-content: right;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .page-nav-btn,
+    .page-number-btn,
+    .page-dots {
+        height: 42px;
+        min-width: 42px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.28);
+        background: rgba(255,255,255,0.96);
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.35s ease;
+    }
+
+    .page-nav-btn {
+        min-width: 100px;
+        border-radius: 999px;
+        border: none;
+        color: #ffffff;
+        background: linear-gradient(135deg, #21a3ff, #1687f2);
+        box-shadow: 0 14px 32px rgba(33,163,255,0.35);
+    }
+
+    .page-number-btn {
+        cursor: pointer;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+    }
+
+    .page-number-btn.active {
+        color: #ffffff;
+        border-color: transparent;
+        background: linear-gradient(135deg, #21a3ff, #1687f2);
+        box-shadow: 0 14px 30px rgba(33,163,255,0.42);
+        transform: scale(1.08);
+    }
+
+    .page-number-btn:hover,
+    .page-nav-btn:hover:not(:disabled) {
+        transform: translateY(-4px) scale(1.06);
+    }
+
+    .page-nav-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .page-dots {
+        pointer-events: none;
+    }
+
+    @@media (max-width: 576px) {
+        .records-pagination {
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .page-nav-btn {
+            min-width: 105px;
+            height: 44px;
+            font-size: 16px;
+        }
+
+        .page-number-btn,
+        .page-dots {
+            min-width: 42px;
+            height: 42px;
+            font-size: 16px;
+        }
+    }
 </style>
