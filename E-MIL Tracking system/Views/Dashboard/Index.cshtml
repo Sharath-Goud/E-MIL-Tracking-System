@@ -108,6 +108,62 @@
             <h3>Weekly Audit R-Chart</h3>
             <div id="weeklyAuditRChart"></div>
         </div>
+        <div class="audit-dashboard-card">
+            <h3>Audit Report</h3>
+
+            @{
+                var selectedWeekIndex = (int)ViewBag.SelectedWeek - 1;
+                var row = ViewBag.AuditTableRows[selectedWeekIndex];
+            }
+
+            <div class="audit-table-wrapper dashboard-audit-table-wrapper">
+                <table class="audit-hours-table">
+                        <tbody>
+                            <tr>
+                                <th class="left-head">Date</th>
+                                @foreach (var item in row.Dates)
+                                {
+                                    <th class="date-cell @(item.StartsWith("WK") ? "week-cell" : "")">
+                                        @item
+                                    </th>
+                                }
+                            </tr>
+
+                            <tr>
+                                <th class="row-head total-row">Total Finding</th>
+                                @foreach (var item in row.TotalFindings)
+                                {
+                                    <td>@item</td>
+                                }
+                            </tr>
+
+                            <tr>
+                                <th class="row-head audit-row">Audit Hour</th>
+                                @foreach (var item in row.AuditHours)
+                                {
+                                    <td>@item</td>
+                                }
+                            </tr>
+
+                            <tr>
+                                <th class="row-head finding-row">Finding/Hour</th>
+                                @foreach (var item in row.FindingHr)
+                                {
+                                    <td>@item</td>
+                                }
+                            </tr>
+
+                            <tr>
+                                <th class="row-head r-row">R</th>
+                                @foreach (var item in row.RValues)
+                                {
+                                    <td>@item</td>
+                                }
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
     </div>
 </div>
 
@@ -1039,5 +1095,77 @@
     }
 
     }
+
+    .audit-dashboard-card {
+        grid-column: 1 / -1;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 24px;
+        padding: 20px;
+        background: rgba(255,255,255,0.05);
+        box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+    }
+
+        .audit-dashboard-card h3 {
+            text-align: center;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+    .dashboard-audit-table-wrapper {
+        margin-bottom: 22px;
+        overflow-x: auto;
+    }
+
+    .audit-hours-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .audit-hours-table th {
+            background: linear-gradient(to bottom, #d9dee8, #c7cfdb);
+            color: #111827;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px 12px;
+            border: 1px solid #7f8aa3;
+            text-align: center;
+            min-width: 130px;
+        }
+
+        .audit-hours-table td {
+            background: #0b0f1f;
+            color: #F3F4F6;
+            font-size: 14px;
+            padding: 14px 12px;
+            border: 1px solid #4b5563;
+            text-align: center;
+            min-width: 130px;
+        }
+
+        .audit-hours-table tr:nth-child(even) td {
+            background: #11182d;
+        }
+
+        .audit-hours-table .left-head,
+        .audit-hours-table .row-head {
+            width: 150px;
+            min-width: 150px;
+        }
+
+    .week-cell {
+        position: relative;
+    }
+
+        .week-cell::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            border-top: 9px solid #22c55e;
+            border-right: 9px solid transparent;
+        }
 
 </style>

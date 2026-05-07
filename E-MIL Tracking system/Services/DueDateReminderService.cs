@@ -3,70 +3,82 @@
 public class DueDateReminderService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<DueDateReminderService> _logger;
 
-    public DueDateReminderService(IServiceScopeFactory scopeFactory)
+    public DueDateReminderService(
+        IServiceScopeFactory scopeFactory,
+        ILogger<DueDateReminderService> logger)
     {
         _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = _scopeFactory.CreateScope();
-
-            var checklistService = scope.ServiceProvider.GetRequiredService<ChecklistService>();
-            var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-            var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
-
-            var records = await checklistService.GetAllAsync();
-
-            var dueRecords = records
-            .Where(x =>
-                x.DueDate.HasValue &&
-                x.DueDate.Value.Date == DateTime.Today &&
-                string.Equals(x.Status?.Trim(), "Ongoing", StringComparison.OrdinalIgnoreCase) &&
-                x.DueReminderSent == false)
-            .ToList();
-
-            foreach (var savedRecord in dueRecords)
+            try
             {
-                string? beforeImagePath = null;
-                string? afterImagePath = null;
+                using var scope = _scopeFactory.CreateScope();
 
-                if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
+                var checklistService = scope.ServiceProvider.GetRequiredService<ChecklistService>();
+                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+
+                var records = await checklistService.GetAllAsync();
+
+                var dueRecords = records
+                    .Where(x =>
+                        x.DueDate.HasValue &&
+                        x.DueDate.Value.Date == DateTime.Today &&
+                        string.Equals(x.Status?.Trim(), "Ongoing", StringComparison.OrdinalIgnoreCase) &&
+                        x.DueReminderSent == false)
+                    .ToList();
+
+                foreach (var savedRecord in dueRecords)
                 {
-                    beforeImagePath = Path.Combine(
-                        env.WebRootPath,
-                        savedRecord.BeforeImagePath.TrimStart('/')
-                            .Replace("/", Path.DirectorySeparatorChar.ToString())
-                    );
+                    try
+                    {
+                        string? beforeImagePath = null;
+                        string? afterImagePath = null;
+
+                        if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
+                        {
+                            beforeImagePath = Path.Combine(
+                                env.WebRootPath,
+                                savedRecord.BeforeImagePath.TrimStart('/')
+                                    .Replace("/", Path.DirectorySeparatorChar.ToString()));
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
+                        {
+                            afterImagePath = Path.Combine(
+                                env.WebRootPath,
+                                savedRecord.AfterImagePath.TrimStart('/')
+                                    .Replace("/", Path.DirectorySeparatorChar.ToString()));
+                        }
+
+                        string subject = $"MIL Audit Due Date Reminder - {DateTime.Now:dd-MM-yyyy}";
+                        string body = BuildDueReminderBody(savedRecord);
+
+                        await emailService.SendEmailWithInlineImagesAsync(
+                            "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
+                            subject,
+                            body,
+                            beforeImagePath,
+                            afterImagePath);
+
+                        await checklistService.MarkDueReminderSentAsync(savedRecord.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send due date reminder for record ID {RecordId}", savedRecord.Id);
+                    }
                 }
-
-                if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
-                {
-                    afterImagePath = Path.Combine(
-                        env.WebRootPath,
-                        savedRecord.AfterImagePath.TrimStart('/')
-                            .Replace("/", Path.DirectorySeparatorChar.ToString())
-                    );
-                }
-
-                string subject = $"MIL Audit Due Date Reminder - {DateTime.Now:dd-MM-yyyy}";
-
-                string body = BuildDueReminderBody(savedRecord);
-                //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
-                // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
-                // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
-                await emailService.SendEmailWithInlineImagesAsync(
-                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
-                    subject,
-                    body,
-                    beforeImagePath,
-                    afterImagePath
-                );
-
-                await checklistService.MarkDueReminderSentAsync(savedRecord.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DueDateReminderService failed.");
             }
 
             await Task.Delay(TimeSpan.FromHours(1), stoppingToken);

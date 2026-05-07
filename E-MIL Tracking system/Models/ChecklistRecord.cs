@@ -53,6 +53,8 @@ namespace E_MIL_Tracking_system.Models
 
         [MaxLength(50)]
         public string? TypeOfAudit { get; set; }
+        [MaxLength(100)]
+        public string? Auditor { get; set; }
 
         [MaxLength(255)]
         public string? BeforeImagePath { get; set; }

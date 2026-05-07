@@ -31,6 +31,7 @@
                         <th>Respective Department</th>
                         <th>Apple DRI</th>
                         <th>Type of Audit</th>
+                        <th>Auditor</th>
                         <th>Before Image</th>
                         <th>RCCA</th>
                         <th>After Image</th>
@@ -62,7 +63,7 @@
                                 <td>@item.RespectiveDepartment</td>
                                 <td>@item.AppleDri</td>
                                 <td>@item.TypeOfAudit</td>
-
+                                <td>@item.Auditor</td>
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
                                     {
@@ -650,6 +651,107 @@
             height: 42px;
             font-size: 16px;
         }
+    }
+
+    .report-table {
+        min-width: 1750px !important;
+        table-layout: fixed !important;
+    }
+
+        .report-table thead th,
+        .report-table tbody td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            padding: 10px 8px !important;
+            font-size: 13px !important;
+        }
+
+        .report-table th:nth-child(1),
+        .report-table td:nth-child(1) {
+            width: 55px !important;
+            min-width: 55px !important;
+            max-width: 55px !important;
+        }
+
+        .report-table th:nth-child(2),
+        .report-table td:nth-child(2),
+        .report-table th:nth-child(3),
+        .report-table td:nth-child(3),
+        .report-table th:nth-child(4),
+        .report-table td:nth-child(4),
+        .report-table th:nth-child(5),
+        .report-table td:nth-child(5),
+        .report-table th:nth-child(6),
+        .report-table td:nth-child(6),
+        .report-table th:nth-child(7),
+        .report-table td:nth-child(7),
+        .report-table th:nth-child(9),
+        .report-table td:nth-child(9),
+        .report-table th:nth-child(11),
+        .report-table td:nth-child(11),
+        .report-table th:nth-child(12),
+        .report-table td:nth-child(12),
+        .report-table th:nth-child(14),
+        .report-table td:nth-child(14),
+        .report-table th:nth-child(15),
+        .report-table td:nth-child(15),
+        .report-table th:nth-child(16),
+        .report-table td:nth-child(16),
+        .report-table th:nth-child(17),
+        .report-table td:nth-child(17),
+        .report-table th:nth-child(18),
+        .report-table td:nth-child(18),
+        .report-table th:nth-child(19),
+        .report-table td:nth-child(19),
+        .report-table th:nth-child(20),
+        .report-table td:nth-child(20),
+        .report-table th:nth-child(22),
+        .report-table td:nth-child(22),
+        .report-table th:nth-child(23),
+        .report-table td:nth-child(23) {
+            width: 90px !important;
+            min-width: 90px !important;
+            max-width: 90px !important;
+        }
+
+        .report-table th:nth-child(8),
+        .report-table td:nth-child(8),
+        .report-table th:nth-child(13),
+        .report-table td:nth-child(13) {
+            width: 125px !important;
+            min-width: 125px !important;
+            max-width: 125px !important;
+        }
+
+        .report-table th:nth-child(10),
+        .report-table td:nth-child(10),
+        .report-table th:nth-child(21),
+        .report-table td:nth-child(21) {
+            width: 300px !important;
+            min-width: 300px !important;
+            max-width: 300px !important;
+            text-align: left !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            line-height: 1.5 !important;
+        }
+
+        .report-table td:nth-child(10),
+        .report-table td:nth-child(21) {
+            max-width: 50ch !important;
+        }
+
+    .table-preview-img {
+        width: 52px !important;
+        height: 40px !important;
+        margin: 0 auto !important;
+    }
+
+    .status-badge {
+        min-width: 60px !important;
+        padding: 6px 12px !important;
+        font-size: 12px !important;
     }
 
 </style>

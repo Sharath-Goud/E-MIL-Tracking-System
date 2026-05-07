@@ -20,6 +20,7 @@
         public string? RespectiveDepartment { get; set; }
         public string? AppleDri { get; set; }
         public string? TypeOfAudit { get; set; }
+        public string? Auditor { get; set; }
         public string? BeforeImagePath { get; set; }
         public string? Rcca { get; set; }
         public string? AfterImagePath { get; set; }

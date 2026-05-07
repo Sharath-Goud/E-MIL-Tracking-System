@@ -1,16 +1,24 @@
-﻿@model List<E_MIL_Tracking_system.DTOs.Checklist.ChecklistResponseDto>
+﻿@using Microsoft.AspNetCore.Http
+@model List<E_MIL_Tracking_system.DTOs.Checklist.ChecklistResponseDto>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 @{
     ViewData["Title"] = "Checklist";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    bool isAdmin = string.Equals(
+    Context.Session.GetString("Role"),
+            "Admin",
+            StringComparison.OrdinalIgnoreCase
+        );
 }
 
 <div class="checklist-page">
     <div class="checklist-card">
         <h2 class="checklist-title">Checklist Form</h2>
-
+        <p style="color:white">
+            Is Admin: @isAdmin
+        </p>
         <form id="checklistForm" class="checklist-form" asp-controller="Checklist"
               asp-action="Create"
               method="post"
@@ -68,7 +76,29 @@
 
             <div class="form-row form-row-large">
                 <div class="form-group">
-                    <label for="section">Section</label>
+                    <label for="section" class="label-with-actions">
+                        <span>Section</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('section', 'Section', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('section', 'Section', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('section', 'Section', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
                     <div class="select-wrapper">
                         <select id="section" name="Section">
                             <option value="">Select Section</option>
@@ -87,7 +117,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="stationName">Station Name</label>
+                    <label for="stationName" class="label-with-actions">
+                        <span>Station Name</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('stationName', 'Station Name', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('stationName', 'Station Name', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('stationName', 'Station Name', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
                     <div class="select-wrapper">
                         <select id="stationName" name="StationName">
                             <option value="">Select Station</option>
@@ -172,7 +224,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="issueSeverity">Issue Severity</label>
+                    <label for="issueSeverity" class="label-with-actions">
+                        <span>Issue Severity</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
                     <div class="select-wrapper">
                         <select id="issueSeverity" name="IssueSeverity">
                             <option value="">Select Severity</option>
@@ -187,7 +261,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="category">Category</label>
+                    <label for="category" class="label-with-actions">
+                        <span>Category</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('category', 'Category', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('category', 'Category', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('category', 'Category', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
                     <div class="select-wrapper">
                         <select id="category" name="Category">
                             <option value="">Select Category</option>
@@ -209,7 +305,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="cmDri">CM DRI</label>
+                    <label for="cmDri" class="label-with-actions">
+                        <span>CM DRI</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('cmDri', 'CM DRI', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('cmDri', 'CM DRI', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('cmDri', 'CM DRI', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
                     <div class="select-wrapper">
                         <select id="cmDri" name="CmDri">
                             <option value="">Select CM DRI</option>
@@ -227,7 +345,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="respectiveDepartment">Respective Department</label>
+                    <label for="respectiveDepartment" class="label-with-actions">
+                        <span>Respective Department</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
                     <div class="select-wrapper">
                         <select id="respectiveDepartment" name="RespectiveDepartment">
                             <option value="">Select Department</option>
@@ -242,7 +382,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="appleDri">Apple DRI</label>
+                    <label for="appleDri" class="label-with-actions">
+                        <span>Apple DRI</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('appleDri', 'Apple DRI', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('appleDri', 'Apple DRI', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('appleDri', 'Apple DRI', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
                     <div class="select-wrapper">
                         <select id="appleDri" name="AppleDri">
                             <option value="">Select Apple DRI</option>
@@ -269,23 +431,50 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="auditor" class="label-with-actions">
+                        <span>Auditor</span>
+
+                        @if (isAdmin)
+                        {
+                            <span class="dropdown-action-icons">
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('auditor', 'Auditor', 'add')">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('auditor', 'Auditor', 'edit')">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="dropdown-icon-btn"
+                                        onclick="openDropdownPopup('auditor', 'Auditor', 'delete')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        }
+                    </label>
+                    <div class="select-wrapper">
+                        <select id="auditor" name="Auditor">
+                            <option value="">Select Auditor</option>
+                            <option value="Charitha">Charitha</option>
+                            <option value="Divya">Divya</option>
+                            <option value="Selva">Selva Kumar</option>
+                        </select>
+                        <span class="select-arrow">
+                            <i class="fa fa-chevron-down"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>Before Image</label>
 
                     <div class="custom-file-box" id="beforeFileBox">
-                        <label for="beforeImage" class="choose-file-btn">Choose File</label>
+                        <label for="beforeImage" class="choose-file-btn">Choose Image</label>
 
-                        <div class="file-display-area" id="beforeFileDisplay">
+                        <div class="file-display-area" id="beforePreviewBox">
                             <span class="file-placeholder" id="beforeFileText">No image uploaded</span>
-                            <img id="beforePreviewInline"
-                                 class="inline-image-preview clickable-preview"
-                                 style="display:none;"
-                                 alt="Preview"
-                                 onclick="openImageModal(this.src)" />
                         </div>
-
-                        <button type="button" class="remove-image-btn" id="beforeRemoveBtn" onclick="removeSelectedImage('before')" style="display:none;">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
 
                         <button type="button" class="camera-inside-btn" onclick="openCamera('before')">
                             <i class="fa fa-camera"></i>
@@ -293,9 +482,10 @@
 
                         <input type="file"
                                id="beforeImage"
-                               name="BeforeImage"
+                               name="BeforeImages"
                                accept="image/*"
-                               class="hidden-file-input" />
+                               class="hidden-file-input"
+                               multiple />
                     </div>
 
                     <div class="camera-box" id="beforeCameraBox" style="display:none;">
@@ -347,6 +537,7 @@
                             <th>Respective Department</th>
                             <th>Apple DRI</th>
                             <th>Type of Audit</th>
+                            <th>Auditor</th>
                             <th>Before Image</th>
                             <th>Status</th>
                         </tr>
@@ -362,7 +553,9 @@
                                     <td>@item.Section</td>
                                     <td>@item.StationName</td>
                                     <td>@item.IssueType</td>
-                                    <td>@item.ProblemStatement</td>
+                                    <td>
+                                        <span class="problem-text">@item.ProblemStatement</span>
+                                    </td>
                                     <td>@item.Frequency</td>
                                     <td>@item.IssueSeverity</td>
                                     <td>@item.Category</td>
@@ -372,6 +565,7 @@
                                     <td>@item.RespectiveDepartment</td>
                                     <td>@item.AppleDri</td>
                                     <td>@item.TypeOfAudit</td>
+                                    <td>@item.Auditor</td>
                                     <td>
                                         @if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
                                         {
@@ -406,6 +600,23 @@
         <span class="close-modal" onclick="closeImageModal()">&times;</span>
         <img class="modal-content" id="modalImage" alt="Large preview" />
     </div>
+    <div id="dropdownPopup" class="dropdown-popup-overlay">
+        <div class="dropdown-popup-box">
+            <button type="button" class="popup-close-btn" onclick="closeDropdownPopup()">
+                &times;
+            </button>
+
+            <h3 id="dropdownPopupTitle">Add Value</h3>
+
+            <input type="text" id="dropdownNewValue" placeholder="Enter value" />
+
+            <p id="deleteConfirmText" class="delete-confirm-text" style="display:none;"></p>
+
+            <button type="button" class="popup-submit-btn" onclick="submitDropdownAction()">
+                Submit
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -430,29 +641,125 @@
         }
     }
 
-        function captureImage(type) {
+        let beforeSelectedFiles = [];
+
+    const beforeImageInput = document.getElementById("beforeImage");
+
+    if (beforeImageInput) {
+        beforeImageInput.addEventListener("change", function (e) {
+            const files = Array.from(e.target.files);
+
+            files.forEach(file => {
+                const exists = beforeSelectedFiles.some(x =>
+                    x.name === file.name && x.size === file.size
+                );
+
+                if (!exists) {
+                    beforeSelectedFiles.push(file);
+                }
+            });
+
+            updateMultipleImagePreview();
+        });
+    }
+
+    function updateMultipleImagePreview() {
+        const previewBox = document.getElementById("beforePreviewBox");
+        const text = document.getElementById("beforeFileText");
+        const fileInput = document.getElementById("beforeImage");
+
+        previewBox.innerHTML = "";
+
+        if (beforeSelectedFiles.length === 0) {
+            text.style.display = "inline";
+            previewBox.appendChild(text);
+            fileInput.value = "";
+            updateStatusAutomatically();
+            return;
+        }
+
+        beforeSelectedFiles.forEach((file, index) => {
+            const imageUrl = URL.createObjectURL(file);
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "inside-preview-item";
+
+            wrapper.innerHTML = `
+                <img src="${imageUrl}" onclick="openImageModal('${imageUrl}')" />
+
+                <button type="button"
+                        class="inside-preview-remove"
+                        onclick="removeMultipleImage(${index})">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            previewBox.appendChild(wrapper);
+        });
+
+        const dataTransfer = new DataTransfer();
+
+        beforeSelectedFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+
+        fileInput.files = dataTransfer.files;
+
+        updateStatusAutomatically();
+    }
+
+    function removeMultipleImage(index) {
+        beforeSelectedFiles.splice(index, 1);
+        updateMultipleImagePreview();
+    }
+
+    function captureImage(type) {
         const video = document.getElementById(type + "Video");
         const canvas = document.getElementById(type + "Canvas");
-        const fileInput = document.getElementById(type + "Image");
 
         const context = canvas.getContext("2d");
+
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob(function (blob) {
-            const file = new File([blob], type + "-capture.jpg", { type: "image/jpeg" });
+            const file = new File(
+                [blob],
+                type + "-capture-" + Date.now() + ".jpg",
+                { type: "image/jpeg" }
+            );
 
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-
-            updateInlineImagePreview(type, file);
-            updateStatusAutomatically();
-
+            beforeSelectedFiles.push(file);
+            updateMultipleImagePreview();
             closeCamera(type);
         }, "image/jpeg");
     }
+
+    //     function captureImage(type) {
+    //     const video = document.getElementById(type + "Video");
+    //     const canvas = document.getElementById(type + "Canvas");
+    //     const fileInput = document.getElementById(type + "Image");
+
+    //     const context = canvas.getContext("2d");
+    //     canvas.width = video.videoWidth;
+    //     canvas.height = video.videoHeight;
+    //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    //     canvas.toBlob(function (blob) {
+    //         const file = new File([blob], type + "-capture.jpg", { type: "image/jpeg" });
+
+    //         const dataTransfer = new DataTransfer();
+    //         dataTransfer.items.add(file);
+    //         fileInput.files = dataTransfer.files;
+
+    //         updateInlineImagePreview(type, file);
+    //         updateStatusAutomatically();
+
+    //         closeCamera(type);
+    //     }, "image/jpeg");
+    // }
 
     function closeCamera(type) {
         const cameraBox = document.getElementById(type + "CameraBox");
@@ -467,50 +774,50 @@
         cameraBox.style.display = "none";
     }
 
-    function updateInlineImagePreview(type, file) {
-        const preview = document.getElementById(type + "PreviewInline");
-        const text = document.getElementById(type + "FileText");
-        const removeBtn = document.getElementById(type + "RemoveBtn");
+    // function updateInlineImagePreview(type, file) {
+    //     const preview = document.getElementById(type + "PreviewInline");
+    //     const text = document.getElementById(type + "FileText");
+    //     const removeBtn = document.getElementById(type + "RemoveBtn");
 
-        if (file) {
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = "block";
-            text.style.display = "none";
-            removeBtn.style.display = "flex";
-        } else {
-            preview.src = "";
-            preview.style.display = "none";
-            text.textContent = "No image uploaded";
-            text.style.display = "inline";
-            removeBtn.style.display = "none";
-        }
+    //     if (file) {
+    //         preview.src = URL.createObjectURL(file);
+    //         preview.style.display = "block";
+    //         text.style.display = "none";
+    //         removeBtn.style.display = "flex";
+    //     } else {
+    //         preview.src = "";
+    //         preview.style.display = "none";
+    //         text.textContent = "No image uploaded";
+    //         text.style.display = "inline";
+    //         removeBtn.style.display = "none";
+    //     }
 
-        updateStatusAutomatically();
-    }
+    //     updateStatusAutomatically();
+    // }
 
-    function removeSelectedImage(type) {
-        const fileInput = document.getElementById(type + "Image");
-        const preview = document.getElementById(type + "PreviewInline");
-        const text = document.getElementById(type + "FileText");
-        const removeBtn = document.getElementById(type + "RemoveBtn");
+    // function removeSelectedImage(type) {
+    //     const fileInput = document.getElementById(type + "Image");
+    //     const preview = document.getElementById(type + "PreviewInline");
+    //     const text = document.getElementById(type + "FileText");
+    //     const removeBtn = document.getElementById(type + "RemoveBtn");
 
-        fileInput.value = "";
-        preview.src = "";
-        preview.style.display = "none";
-        text.textContent = "No image uploaded";
-        text.style.display = "inline";
-        removeBtn.style.display = "none";
+    //     fileInput.value = "";
+    //     preview.src = "";
+    //     preview.style.display = "none";
+    //     text.textContent = "No image uploaded";
+    //     text.style.display = "inline";
+    //     removeBtn.style.display = "none";
 
-        updateStatusAutomatically();
-    }
+    //     updateStatusAutomatically();
+    // }
 
-    const beforeImageInput = document.getElementById("beforeImage");
-    if (beforeImageInput) {
-        beforeImageInput.addEventListener("change", function (e) {
-            const file = e.target.files[0];
-            updateInlineImagePreview("before", file);
-        });
-    }
+    // const beforeImageInput = document.getElementById("beforeImage");
+    // if (beforeImageInput) {
+    //     beforeImageInput.addEventListener("change", function (e) {
+    //         const file = e.target.files[0];
+    //         updateInlineImagePreview("before", file);
+    //     });
+    // }
 
     const dateInput = document.getElementById("date");
     const weekCodeInput = document.getElementById("weekCode");
@@ -601,7 +908,8 @@
             "cmDri",
             "respectiveDepartment",
             "appleDri",
-            "typeOfAudit"
+            "typeOfAudit",
+            "auditor",
         ];
 
         let allFilled = true;
@@ -692,6 +1000,7 @@
             document.getElementById("respectiveDepartment"),
             document.getElementById("appleDri"),
             document.getElementById("typeOfAudit"),
+            document.getElementById("auditor"),
             document.getElementById("beforeImage")
         ];
 
@@ -751,6 +1060,229 @@
 
         updateStatusAutomatically();
     }
+</script>
+<script>
+    let activeDropdownId = "";
+    let activeDropdownLabel = "";
+    let dropdownActionMode = "";
+    let selectedOldValue = "";
+
+    const dynamicDropdownIds = [
+        "section",
+        "stationName",
+        "issueSeverity",
+        "category",
+        "cmDri",
+        "respectiveDepartment",
+        "appleDri",
+        "auditor"
+    ];
+
+    function openDropdownPopup(dropdownId, labelName, mode) {
+        activeDropdownId = dropdownId;
+        activeDropdownLabel = labelName;
+        dropdownActionMode = mode;
+
+        const dropdown = document.getElementById(dropdownId);
+        const input = document.getElementById("dropdownNewValue");
+        const title = document.getElementById("dropdownPopupTitle");
+        const deleteText = document.getElementById("deleteConfirmText");
+
+        input.value = "";
+        input.style.display = "block";
+        deleteText.style.display = "none";
+        deleteText.innerText = "";
+
+        if (mode === "add") {
+            title.innerText = "Add " + labelName;
+            input.placeholder = "Enter " + labelName;
+        }
+
+        if (mode === "edit") {
+            if (!dropdown || !dropdown.value) {
+                showToast("Please select " + labelName + " to edit", "linear-gradient(to right, #ff5f6d, #ffc371)");
+                return;
+            }
+
+            selectedOldValue = dropdown.value;
+            title.innerText = "Edit " + labelName;
+            input.value = selectedOldValue;
+            input.placeholder = "Edit " + labelName;
+        }
+
+        if (mode === "delete") {
+            if (!dropdown || !dropdown.value) {
+                showToast("Please select " + labelName + " to delete", "linear-gradient(to right, #ff5f6d, #ffc371)");
+                return;
+            }
+
+            selectedOldValue = dropdown.value;
+            title.innerText = "Delete " + labelName;
+            input.style.display = "none";
+            deleteText.style.display = "block";
+            deleteText.innerText = "Are you sure you want to delete '" + selectedOldValue + "'?";
+        }
+
+        document.getElementById("dropdownPopup").classList.add("show");
+
+        setTimeout(() => {
+            if (mode !== "delete") input.focus();
+        }, 100);
+    }
+
+    function closeDropdownPopup() {
+        document.getElementById("dropdownPopup").classList.remove("show");
+    }
+
+    function submitDropdownAction() {
+        if (dropdownActionMode === "add") {
+            addDropdownValue();
+        } else if (dropdownActionMode === "edit") {
+            updateDropdownValue();
+        } else if (dropdownActionMode === "delete") {
+            deleteSelectedDropdownValue();
+        }
+    }
+
+    function addDropdownValue() {
+        const input = document.getElementById("dropdownNewValue");
+        const newValue = input.value.trim();
+        const dropdown = document.getElementById(activeDropdownId);
+
+        if (!newValue) {
+            showToast("Please enter " + activeDropdownLabel, "linear-gradient(to right, #ff5f6d, #ffc371)");
+            return;
+        }
+
+        const exists = Array.from(dropdown.options).some(x =>
+            x.value.toLowerCase() === newValue.toLowerCase()
+        );
+
+        if (exists) {
+            showToast(activeDropdownLabel + " already exists", "linear-gradient(to right, #ff5f6d, #ffc371)");
+            return;
+        }
+
+        const option = document.createElement("option");
+        option.value = newValue;
+        option.text = newValue;
+        dropdown.appendChild(option);
+        dropdown.value = newValue;
+
+        saveDropdownValueToLocalStorage(activeDropdownId, newValue);
+        updateStatusAutomatically();
+        closeDropdownPopup();
+
+        showToast("Added successfully", "linear-gradient(to right, #00b09b, #96c93d)");
+    }
+
+    function updateDropdownValue() {
+        const input = document.getElementById("dropdownNewValue");
+        const newValue = input.value.trim();
+        const dropdown = document.getElementById(activeDropdownId);
+
+        if (!newValue) {
+            showToast(activeDropdownLabel + " cannot be empty", "linear-gradient(to right, #ff5f6d, #ffc371)");
+            return;
+        }
+
+        const duplicate = Array.from(dropdown.options).some(option =>
+            option.value.toLowerCase() === newValue.toLowerCase() &&
+            option.value.toLowerCase() !== selectedOldValue.toLowerCase()
+        );
+
+        if (duplicate) {
+            showToast(activeDropdownLabel + " already exists", "linear-gradient(to right, #ff5f6d, #ffc371)");
+            return;
+        }
+
+        const selectedOption = dropdown.options[dropdown.selectedIndex];
+        selectedOption.value = newValue;
+        selectedOption.text = newValue;
+        dropdown.value = newValue;
+
+        updateDropdownLocalStorage(activeDropdownId, selectedOldValue, newValue);
+        updateStatusAutomatically();
+        closeDropdownPopup();
+
+        showToast("Updated successfully", "linear-gradient(to right, #00b09b, #96c93d)");
+    }
+
+    function deleteSelectedDropdownValue() {
+        const dropdown = document.getElementById(activeDropdownId);
+
+        dropdown.remove(dropdown.selectedIndex);
+        dropdown.value = "";
+
+        removeDropdownValueFromLocalStorage(activeDropdownId, selectedOldValue);
+        updateStatusAutomatically();
+        closeDropdownPopup();
+
+        showToast("Deleted successfully", "linear-gradient(to right, #00b09b, #96c93d)");
+    }
+
+    function saveDropdownValueToLocalStorage(dropdownId, value) {
+        const key = "dynamic_" + dropdownId;
+        const values = JSON.parse(localStorage.getItem(key)) || [];
+
+        if (!values.some(x => x.toLowerCase() === value.toLowerCase())) {
+            values.push(value);
+            localStorage.setItem(key, JSON.stringify(values));
+        }
+    }
+
+    function updateDropdownLocalStorage(dropdownId, oldValue, newValue) {
+        const key = "dynamic_" + dropdownId;
+        let values = JSON.parse(localStorage.getItem(key)) || [];
+
+        values = values.map(x =>
+            x.toLowerCase() === oldValue.toLowerCase() ? newValue : x
+        );
+
+        localStorage.setItem(key, JSON.stringify(values));
+    }
+
+    function removeDropdownValueFromLocalStorage(dropdownId, value) {
+        const key = "dynamic_" + dropdownId;
+        let values = JSON.parse(localStorage.getItem(key)) || [];
+
+        values = values.filter(x =>
+            x.toLowerCase() !== value.toLowerCase()
+        );
+
+        localStorage.setItem(key, JSON.stringify(values));
+    }
+
+    function loadDynamicDropdownValues() {
+        dynamicDropdownIds.forEach(dropdownId => {
+            const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) return;
+
+            const key = "dynamic_" + dropdownId;
+            const values = JSON.parse(localStorage.getItem(key)) || [];
+
+            values.forEach(value => {
+                const exists = Array.from(dropdown.options).some(option =>
+                    option.value.toLowerCase() === value.toLowerCase()
+                );
+
+                if (!exists) {
+                    const option = document.createElement("option");
+                    option.value = value;
+                    option.text = value;
+                    dropdown.appendChild(option);
+                }
+            });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDynamicDropdownValues);
+
+    document.getElementById("dropdownNewValue")?.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            submitDropdownAction();
+        }
+    });
 </script>
 <script>
     function openImageModal(src) {
@@ -870,12 +1402,55 @@
         flex-direction: column;
     }
 
-    .form-group label {
-        margin-bottom: 8px;
-        font-size: 14px;
-        font-weight: 600;
+        .form-group label {
+            width: auto;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
             color: #D3D3D3;
+        }
+
+    .label-with-actions {
+        width: 100%;
+        display: flex !important;
+        align-items: center;
     }
+
+        .label-with-actions > span:first-child {
+            flex: 1;
+        }
+
+    .dropdown-action-icons {
+        margin-left: auto;
+        padding-left: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+
+    .dropdown-icon-btn {
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #1d2545;
+        cursor: pointer;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: 0.3s ease;
+    }
+
+        .dropdown-icon-btn:hover {
+            background: #14162C;
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
 
     .form-group input,
     .form-group textarea {
@@ -1402,7 +1977,7 @@
 
     .custom-file-box {
         width: 100%;
-        height: 42px;
+        min-height: 42px;
         border: 1px solid #a9b5d0;
         border-radius: 12px;
         background: linear-gradient(to bottom, #eef1fb, #c8cef1);
@@ -1412,7 +1987,7 @@
         padding: 4px 8px;
         box-sizing: border-box;
         position: relative;
-        overflow: hidden;
+        overflow: visible;
         transition: all 0.25s ease;
     }
 
@@ -1435,14 +2010,18 @@
     .choose-file-btn {
         background: #14162C;
         color: #fff;
-        padding: 7px 14px;
+        width: auti;
+        height: 32px;
         border-radius: 8px;
         font-size: 13px;
         cursor: pointer;
-        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
-        margin: 0;
         margin-top: 5px;
+        white-space: nowrap;
+        padding: 0px 5px;
     }
 
     .file-display-area {
@@ -1450,7 +2029,45 @@
         min-width: 0;
         display: flex;
         align-items: center;
-        overflow: hidden;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: visible;
+        padding: 4px 36px 4px 0;
+    }
+
+    .inside-preview-item {
+        width: 34px;
+        height: 34px;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+        .inside-preview-item img {
+            width: 34px;
+            height: 34px;
+            object-fit: cover;
+            border-radius: 7px;
+            border: 1px solid #bcc7e4;
+            cursor: pointer;
+        }
+
+    .inside-preview-remove {
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        width: 18px;
+        height: 18px;
+        border: none;
+        border-radius: 50%;
+        background: #ef4444;
+        color: white;
+        font-size: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        z-index: 10;
     }
 
     .file-placeholder {
@@ -1658,5 +2275,320 @@
     .save-btn > * {
         position: relative;
         z-index: 2;
+    }
+
+    .checklist-table {
+        min-width: 1450px;
+        table-layout: fixed;
+    }
+
+        .checklist-table thead th,
+        .checklist-table tbody td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 10px 8px;
+            font-size: 13px;
+        }
+
+        .checklist-table th:nth-child(1),
+        .checklist-table td:nth-child(1) {
+            width: 55px;
+            min-width: 55px;
+            max-width: 55px;
+        }
+
+        .checklist-table th:nth-child(4),
+        .checklist-table td:nth-child(4),
+        .checklist-table th:nth-child(6),
+        .checklist-table td:nth-child(6),
+        .checklist-table th:nth-child(7),
+        .checklist-table td:nth-child(7),
+        .checklist-table th:nth-child(9),
+        .checklist-table td:nth-child(9),
+        .checklist-table th:nth-child(10),
+        .checklist-table td:nth-child(10),
+        .checklist-table th:nth-child(12),
+        .checklist-table td:nth-child(12),
+        .checklist-table th:nth-child(13),
+        .checklist-table td:nth-child(13),
+        .checklist-table th:nth-child(14),
+        .checklist-table td:nth-child(14),
+        .checklist-table th:nth-child(15),
+        .checklist-table td:nth-child(15),
+        .checklist-table th:nth-child(16),
+        .checklist-table td:nth-child(16),
+        .checklist-table th:nth-child(17),
+        .checklist-table td:nth-child(17) {
+            width: 105px;
+            min-width: 105px;
+            max-width: 105px;
+        }
+
+        .checklist-table th:nth-child(5),
+        .checklist-table td:nth-child(5) {
+            width: 280px;
+            min-width: 280px;
+            max-width: 280px;
+            text-align: center;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.5;
+        }
+
+    .table-preview-img {
+        width: 60px;
+        height: 45px;
+        margin: 0 auto;
+    }
+
+    .status-badge {
+        min-width: 70px;
+        padding: 7px 16px;
+        font-size: 13px;
+    }
+
+    .checklist-table th:last-child,
+    .checklist-table td:last-child {
+        width: 115px;
+        min-width: 115px;
+        max-width: 115px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .problem-text {
+        display: block;
+        max-width: 50ch;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .checklist-table th:nth-child(2),
+    .checklist-table td:nth-child(2) {
+        width: 85px;
+        min-width: 85px;
+        max-width: 85px;
+    }
+
+    .checklist-table th:nth-child(4),
+    .checklist-table td:nth-child(4) {
+        width: 85px;
+        min-width: 85px;
+        max-width: 85px;
+    }
+
+    .checklist-table th:nth-child(6),
+    .checklist-table td:nth-child(6) {
+        width: 70px;
+        min-width: 70px;
+        max-width: 70px;
+    }
+
+    .checklist-table th:nth-child(9),
+    .checklist-table td:nth-child(9) {
+        width: 95px;
+        min-width: 95px;
+        max-width: 95px;
+    }
+
+    .checklist-table th:nth-child(10),
+    .checklist-table td:nth-child(10) {
+        width: 95px;
+        min-width: 95px;
+        max-width: 95px;
+    }
+
+    .checklist-table th:nth-child(13),
+    .checklist-table td:nth-child(13) {
+        width: 95px;
+        min-width: 95px;
+        max-width: 95px;
+    }
+
+    .checklist-table th:nth-child(14),
+    .checklist-table td:nth-child(14) {
+        width: 85px;
+        min-width: 85px;
+        max-width: 85px;
+    }
+
+    .checklist-table th:nth-child(15),
+    .checklist-table td:nth-child(15) {
+        width: 85px;
+        min-width: 85px;
+        max-width: 85px;
+    }
+
+    .checklist-table th:nth-child(16),
+    .checklist-table td:nth-child(16) {
+        width: 90px;
+        min-width: 90px;
+        max-width: 90px;
+    }
+
+    .checklist-table th:nth-child(17),
+    .checklist-table td:nth-child(17) {
+        width: 95px;
+        min-width: 95px;
+        max-width: 95px;
+    }
+
+    .status-badge {
+        min-width: 60px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .table-preview-img {
+        width: 70px;
+        height: 40px;
+    }
+
+    .add-dropdown-btn {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        min-height: 24px;
+        border: none;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #1d2545;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        padding: 0;
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+
+        .add-dropdown-btn:hover {
+            background: #14162C;
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+    .dropdown-popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(7, 10, 20, 0.75);
+        backdrop-filter: blur(8px);
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .dropdown-popup-overlay.show {
+            display: flex;
+        }
+
+    .add-dropdown-btn i {
+        font-size: 11px;
+        line-height: 1;
+    }
+
+    .add-dropdown-btn:hover {
+        background: #14162C;
+        color: #ffffff;
+        transform: scale(1.12);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    .dropdown-popup-box {
+        width: 360px;
+        max-width: 92vw;
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 24px;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+        animation: popupZoom 0.3s ease;
+    }
+
+        .dropdown-popup-box h3 {
+            margin: 0 0 18px;
+            color: #1d2545;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .dropdown-popup-box input {
+            width: 100%;
+            height: 42px;
+            border: 1px solid #a9b5d0;
+            border-radius: 12px;
+            outline: none;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #2a3245;
+            box-sizing: border-box;
+        }
+
+    .popup-submit-btn {
+        margin-top: 18px;
+        width: 100%;
+        border: none;
+        background: #14162C;
+        color: #ffffff;
+        padding: 11px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .popup-close-btn {
+        position: absolute;
+        right: 14px;
+        top: 12px;
+        border: none;
+        background: transparent;
+        color: #1d2545;
+        font-size: 28px;
+        cursor: pointer;
+    }
+
+    @@keyframes popupZoom {
+        from
+
+    {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    }
+
+
+    .add-icon {
+        background: #ffffff;
+        color: #1d2545;
+    }
+
+    .edit-icon {
+        background: #ffffff;
+        color: #1d2545;
+    }
+
+    .delete-icon {
+        background: #ffffff;
+        color: #1d2545;
+    }
+
+    .delete-confirm-text {
+        color: #1d2545;
+        font-size: 14px;
+        margin: 10px 0;
+        font-weight: 600;
     }
 </style>

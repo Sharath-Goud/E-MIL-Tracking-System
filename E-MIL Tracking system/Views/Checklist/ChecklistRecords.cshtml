@@ -27,6 +27,7 @@
                             <th>Respective Department</th>
                             <th>Apple DRI</th>
                             <th>Type of Audit</th>
+                            <th>Auditor</th>
                             <th>Before Image</th>
                             <th>RCCA</th>
                             <th>After Image</th>
@@ -59,7 +60,7 @@
                                     <td>@item.RespectiveDepartment</td>
                                     <td>@item.AppleDri</td>
                                     <td>@item.TypeOfAudit</td>
-
+                                    <td>@item.Auditor</td>
                                     <td onclick="event.stopPropagation();">
                                         @if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
                                         {
@@ -74,7 +75,9 @@
                                         }
                                     </td>
 
-                                    <td>@(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")</td>
+                                    <td>
+                                        <span class="rcca-text">@(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")</span>
+                                    </td>
 
                                     <td onclick="event.stopPropagation();">
                                         @if (!string.IsNullOrWhiteSpace(item.AfterImagePath))
@@ -1302,5 +1305,371 @@
             height: 42px;
             font-size: 16px;
         }
+    }
+
+    .checklist-table {
+        min-width: 1600px !important;
+        table-layout: fixed;
+    }
+
+        .checklist-table thead th,
+        .checklist-table tbody td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            padding: 10px 8px !important;
+            font-size: 13px !important;
+        }
+
+        .checklist-table th:nth-child(1),
+        .checklist-table td:nth-child(1) {
+            width: 55px !important;
+            min-width: 55px !important;
+            max-width: 55px !important;
+        }
+
+        .checklist-table th:nth-child(2),
+        .checklist-table td:nth-child(2) {
+            width: 85px !important;
+            min-width: 85px !important;
+            max-width: 85px !important;
+        }
+
+        .checklist-table th:nth-child(3),
+        .checklist-table td:nth-child(3) {
+            width: 130px !important;
+            min-width: 130px !important;
+            max-width: 130px !important;
+        }
+
+        .checklist-table th:nth-child(4),
+        .checklist-table td:nth-child(4) {
+            width: 85px !important;
+            min-width: 85px !important;
+            max-width: 85px !important;
+        }
+
+        .checklist-table th:nth-child(5),
+        .checklist-table td:nth-child(5),
+        .checklist-table th:nth-child(17),
+        .checklist-table td:nth-child(17) {
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
+            text-align: left !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            line-height: 1.5 !important;
+        }
+
+        .checklist-table th:nth-child(6),
+        .checklist-table td:nth-child(6),
+        .checklist-table th:nth-child(7),
+        .checklist-table td:nth-child(7),
+        .checklist-table th:nth-child(9),
+        .checklist-table td:nth-child(9),
+        .checklist-table th:nth-child(10),
+        .checklist-table td:nth-child(10),
+        .checklist-table th:nth-child(13),
+        .checklist-table td:nth-child(13),
+        .checklist-table th:nth-child(14),
+        .checklist-table td:nth-child(14),
+        .checklist-table th:nth-child(15),
+        .checklist-table td:nth-child(15),
+        .checklist-table th:nth-child(16),
+        .checklist-table td:nth-child(16),
+         {
+            width: 95px !important;
+            min-width: 95px !important;
+            max-width: 95px !important;
+        }
+
+        .checklist-table th:nth-child(18),
+        .checklist-table td:nth-child(18) {
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+        }
+
+        .checklist-table th:nth-child(19),
+        .checklist-table td:nth-child(19){
+            width: 140px !important;
+            min-width: 140px !important;
+            max-width: 140px !important;
+        }
+
+        .checklist-table th:nth-child(8),
+        .checklist-table td:nth-child(8),
+        .checklist-table th:nth-child(11),
+        .checklist-table td:nth-child(11),
+        .checklist-table th:nth-child(12),
+        .checklist-table td:nth-child(12) {
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+        }
+
+    .problem-text,
+    .rcca-text {
+        display: block;
+        max-width: 50ch;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .table-preview-img {
+        width: 52px !important;
+        height: 40px !important;
+        margin: 0 auto !important;
+    }
+
+    .status-badge {
+        min-width: 60px !important;
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .checklist-table th:nth-child(6),
+    .checklist-table td:nth-child(6) {
+        width: 65px !important;
+        min-width: 65px !important;
+        max-width: 65px !important;
+    }
+
+    .checklist-table th:nth-child(7),
+    .checklist-table td:nth-child(7) {
+        width: 85px !important;
+        min-width: 85px !important;
+        max-width: 85px !important;
+    }
+
+    .checklist-table th:nth-child(9),
+    .checklist-table td:nth-child(9) {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+    }
+
+    .checklist-table th:nth-child(10),
+    .checklist-table td:nth-child(10) {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+    }
+
+    .checklist-table th:nth-child(12),
+    .checklist-table td:nth-child(12) {
+        width: 100px !important;
+        min-width: 100px !important;
+        max-width: 100px !important;
+    }
+
+    .checklist-table th:nth-child(13),
+    .checklist-table td:nth-child(13) {
+        width: 85px !important;
+        min-width: 85px !important;
+        max-width: 85px !important;
+    }
+
+    .checklist-table th:nth-child(14),
+    .checklist-table td:nth-child(14) {
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+    }
+
+    .checklist-table th:nth-child(15),
+    .checklist-table td:nth-child(15) {
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+    }
+
+    .checklist-table th:nth-child(16),
+    .checklist-table td:nth-child(16) {
+        width: 85px !important;
+        min-width: 85px !important;
+        max-width: 85px !important;
+    }
+
+    .checklist-table td:nth-child(18) {
+        vertical-align: middle !important;
+        text-align: center !important;
+        padding: 12px 10px !important;
+    }
+
+    .after-inline-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .rcca-lock-message {
+        font-size: 13px;
+        font-weight: 600;
+        color: #ef4444;
+        text-align: center;
+        margin-bottom: 2px;
+    }
+
+    .after-inline-form {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .custom-upload-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .after-choose-btn {
+        min-width: 115px;
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 12px;
+        background: #1e293b;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.12);
+        transition: 0.3s ease;
+    }
+
+        .after-choose-btn:hover {
+            background: #334155;
+        }
+
+    .disabled-upload-btn {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .selected-file-name {
+        width: 120px;
+        font-size: 12px;
+        color: #cbd5e1;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .after-camera-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: none;
+        background: #1e293b;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s ease;
+    }
+
+        .after-camera-btn:hover {
+            background: #334155;
+            transform: scale(1.05);
+        }
+
+    .after-submit-btn {
+        min-width: 90px;
+        height: 38px;
+        border: none;
+        border-radius: 12px;
+        background: #6366f1;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.3s ease;
+    }
+
+        .after-submit-btn:hover {
+            background: #4f46e5;
+        }
+
+        .after-submit-btn:disabled,
+        .after-camera-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+    .checklist-table td:nth-child(18) .table-preview-img {
+        margin: 0 auto;
+        display: block;
+    }
+
+    .inline-camera-box {
+        margin-top: 10px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .inline-camera-box video {
+            width: 170px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+    .inline-camera-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .custom-upload-box {
+        gap: 6px !important;
+    }
+
+    .after-choose-btn {
+        min-width: 82px !important;
+        height: 30px !important;
+        padding: 0 10px !important;
+        font-size: 11px !important;
+        border-radius: 8px !important;
+    }
+
+    .selected-file-name {
+        width: 75px !important;
+        font-size: 10px !important;
+    }
+
+    .after-camera-btn {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 11px !important;
+    }
+
+    .after-submit-btn {
+        min-width: 65px !important;
+        height: 30px !important;
+        font-size: 11px !important;
+        border-radius: 8px !important;
+        padding: 0 10px !important;
+    }
+
+    .checklist-table td:nth-child(18) .table-preview-img {
+        width: 48px !important;
+        height: 38px !important;
     }
 </style>

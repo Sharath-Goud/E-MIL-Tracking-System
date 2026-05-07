@@ -293,6 +293,89 @@ namespace E_MIL_Tracking_system.Controllers
         }
     };
 
+            var auditTableRows = weekNumbers.Select(weekNo =>
+            {
+                var weekStart = System.Globalization.ISOWeek.ToDateTime(
+                    selectedYear,
+                    weekNo,
+                    DayOfWeek.Monday
+                );
+
+                var dates = new List<string> { $"WK-{weekNo:00}/{weekStart:dd-MMM}" };
+                dates.AddRange(Enumerable.Range(1, 5).Select(i => weekStart.AddDays(i).ToString("dd-MMM")));
+
+                var totalFindings = new List<string>();
+                var auditHourValues = new List<string>();
+
+                for (int i = 0; i <= 5; i++)
+                {
+                    var currentDate = weekStart.AddDays(i).Date;
+
+                    totalFindings.Add(records.Count(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date == currentDate
+                    ).ToString());
+
+                    var savedAudit = auditHours.FirstOrDefault(x =>
+                        x.ParsedDate.HasValue &&
+                        x.ParsedDate.Value.Date == currentDate);
+
+                    auditHourValues.Add(savedAudit?.AuditHour.ToString("0.##") ?? "");
+                }
+
+                decimal totalFindingSum = totalFindings.Sum(x =>
+                {
+                    decimal.TryParse(x, out var value);
+                    return value;
+                });
+
+                decimal auditHourSum = auditHourValues.Sum(x =>
+                {
+                    decimal.TryParse(x, out var value);
+                    return value;
+                });
+
+                string findingPerHour = "";
+
+                if (auditHourSum > 0)
+                {
+                    decimal result = totalFindingSum / auditHourSum;
+                    findingPerHour = (Math.Floor(result * 10) / 10).ToString("0.0");
+                }
+
+                var findingHr = new List<string> { "", "", "", "", "", findingPerHour };
+
+                var validValues = findingHr
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x =>
+                    {
+                        decimal.TryParse(x, out var value);
+                        return value;
+                    })
+                    .Where(x => x > 0)
+                    .ToList();
+
+                string rValue = "";
+
+                if (validValues.Any())
+                {
+                    decimal r = validValues.Max() - validValues.Min();
+                    rValue = (Math.Floor(r * 10) / 10).ToString("0.0");
+                }
+
+                return new
+                {
+                    Week = $"WK-{weekNo:00}",
+                    Dates = dates,
+                    TotalFindings = totalFindings,
+                    AuditHours = auditHourValues,
+                    FindingHr = findingHr,
+                    RValues = new List<string> { "", "", "", "", "", rValue }
+                };
+            }).ToList();
+
+            ViewBag.AuditTableRows = auditTableRows;
+
             return View();
         }
     }

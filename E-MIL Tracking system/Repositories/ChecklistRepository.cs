@@ -22,15 +22,15 @@ namespace E_MIL_Tracking_system.Repositories
             await connection.OpenAsync();
 
             var query = @"
-        INSERT INTO ChecklistRecords
-        ([Date], WeekCode, [Month], Project, [Line], Section, StationName, IssueType,
-         ProblemStatement, Frequency, IssueSeverity, Category, DueDate,
-         CmDri, RespectiveDepartment, AppleDri, TypeOfAudit, BeforeImagePath, Status)
-        OUTPUT INSERTED.Id
-        VALUES
-        (@Date, @WeekCode, @Month, @Project, @Line, @Section, @StationName, @IssueType,
-         @ProblemStatement, @Frequency, @IssueSeverity, @Category, @DueDate,
-         @CmDri, @RespectiveDepartment, @AppleDri, @TypeOfAudit, @BeforeImagePath, @Status)";
+                INSERT INTO ChecklistRecords
+                ([Date], WeekCode, [Month], Project, [Line], Section, StationName, IssueType,
+                 ProblemStatement, Frequency, IssueSeverity, Category, DueDate,
+                 CmDri, RespectiveDepartment, AppleDri, TypeOfAudit, Auditor, BeforeImagePath, Status)
+                OUTPUT INSERTED.Id
+                VALUES
+                (@Date, @WeekCode, @Month, @Project, @Line, @Section, @StationName, @IssueType,
+                 @ProblemStatement, @Frequency, @IssueSeverity, @Category, @DueDate,
+                 @CmDri, @RespectiveDepartment, @AppleDri, @TypeOfAudit, @Auditor, @BeforeImagePath, @Status)";
 
             using var cmd = new SqlCommand(query, connection);
 
@@ -51,6 +51,7 @@ namespace E_MIL_Tracking_system.Repositories
             cmd.Parameters.Add("@RespectiveDepartment", SqlDbType.NVarChar).Value = (object?)dto.RespectiveDepartment ?? DBNull.Value;
             cmd.Parameters.Add("@AppleDri", SqlDbType.NVarChar).Value = (object?)dto.AppleDri ?? DBNull.Value;
             cmd.Parameters.Add("@TypeOfAudit", SqlDbType.NVarChar).Value = (object?)dto.TypeOfAudit ?? DBNull.Value;
+            cmd.Parameters.Add("@Auditor", SqlDbType.NVarChar).Value = string.IsNullOrWhiteSpace(dto.Auditor) ? DBNull.Value : dto.Auditor;
             cmd.Parameters.Add("@BeforeImagePath", SqlDbType.NVarChar).Value = string.IsNullOrWhiteSpace(imagePath) ? DBNull.Value : imagePath;
             cmd.Parameters.Add("@Status", SqlDbType.NVarChar).Value = string.IsNullOrWhiteSpace(dto.Status) ? DBNull.Value : dto.Status;
 
@@ -69,7 +70,7 @@ namespace E_MIL_Tracking_system.Repositories
                 SELECT Id, [Date], WeekCode, [Month], Project, [Line], Section, StationName,
                        IssueType, ProblemStatement, Frequency, IssueSeverity, Category, DueDate,
                        CmDri, RespectiveDepartment, AppleDri, TypeOfAudit,
-                       BeforeImagePath, Rcca, AfterImagePath, Status
+                       Auditor, BeforeImagePath, Rcca, AfterImagePath, Status
                 FROM ChecklistRecords
                 ORDER BY Id DESC";
 
@@ -98,6 +99,7 @@ namespace E_MIL_Tracking_system.Repositories
                     RespectiveDepartment = reader["RespectiveDepartment"]?.ToString(),
                     AppleDri = reader["AppleDri"]?.ToString(),
                     TypeOfAudit = reader["TypeOfAudit"]?.ToString(),
+                    Auditor = reader["Auditor"]?.ToString(),
                     BeforeImagePath = reader["BeforeImagePath"]?.ToString(),
                     Rcca = reader["Rcca"]?.ToString(),
                     AfterImagePath = reader["AfterImagePath"]?.ToString(),
@@ -117,7 +119,7 @@ namespace E_MIL_Tracking_system.Repositories
         SELECT Id, [Date], WeekCode, [Month], Project, [Line], Section, StationName,
                IssueType, ProblemStatement, Frequency, IssueSeverity, Category, DueDate,
                CmDri, RespectiveDepartment, AppleDri, TypeOfAudit,
-               BeforeImagePath, Rcca, AfterImagePath, Status
+               Auditor, BeforeImagePath, Rcca, AfterImagePath, Status
         FROM ChecklistRecords
         WHERE Id = @Id";
 
@@ -148,6 +150,7 @@ namespace E_MIL_Tracking_system.Repositories
                     RespectiveDepartment = reader["RespectiveDepartment"]?.ToString(),
                     AppleDri = reader["AppleDri"]?.ToString(),
                     TypeOfAudit = reader["TypeOfAudit"]?.ToString(),
+                    Auditor = reader["Auditor"]?.ToString(),
                     BeforeImagePath = reader["BeforeImagePath"]?.ToString(),
                     Rcca = reader["Rcca"]?.ToString(),
                     AfterImagePath = reader["AfterImagePath"]?.ToString(),

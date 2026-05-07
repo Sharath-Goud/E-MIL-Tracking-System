@@ -3,6 +3,7 @@ using E_MIL_Tracking_system.Repositories.Interfaces;
 using E_MIL_Tracking_system.Repositories;
 using E_MIL_Tracking_system.Services.Interfaces;
 using E_MIL_Tracking_system.Services;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
@@ -27,6 +28,10 @@ builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddSingleton<IBackgroundEmailQueue, BackgroundEmailQueue>();
 builder.Services.AddHostedService<BackgroundEmailService>();
 builder.Services.AddHostedService<DueDateReminderService>();
+builder.Services.Configure<HostOptions>(options =>
+{
+    options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+});
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment())

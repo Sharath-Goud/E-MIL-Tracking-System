@@ -254,6 +254,8 @@
     }
 
     .report-card {
+        width: fit-content;
+        max-width: 100%;
         border-radius: 18px;
         padding: 24px;
         box-shadow: 0 8px 24px rgba(18, 24, 40, 0.08);
@@ -268,7 +270,8 @@
     }
 
     .table-wrapper {
-        width: 100%;
+        width: fit-content !important;
+        max-width: 100%;
         overflow-x: auto;
         overflow-y: hidden;
         border: 1px solid rgba(255,255,255,0.18);
@@ -278,9 +281,9 @@
     }
 
     .report-table {
-        width: max-content;
-        min-width: 1800px;
-        border-collapse: collapse;
+        width: max-content !important;
+        min-width: max-content !important;
+        border-collapse: collapse !important;
         table-layout: fixed;
     }
 
@@ -542,12 +545,6 @@
         overflow: hidden;
     }
 
-    .table-wrapper {
-        position: relative;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-    }
-
     .checklist-card::before,
     .custom-file-box::before,
     .camera-box::before,
@@ -670,4 +667,94 @@
     }
 
 
+        .report-table thead th,
+        .report-table tbody td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            padding: 10px 8px !important;
+            font-size: 13px !important;
+        }
+
+        .report-table th:nth-child(1),
+        .report-table td:nth-child(1) {
+            width: 50px !important;
+            min-width: 50px !important;
+            max-width: 50px !important;
+        }
+
+        .report-table th:nth-child(2),
+        .report-table td:nth-child(2) {
+            width: 80px !important;
+            min-width: 80px !important;
+            max-width: 80px !important;
+        }
+
+        .report-table th:nth-child(3),
+        .report-table td:nth-child(3) {
+            width: 95px !important;
+            min-width: 95px !important;
+            max-width: 95px !important;
+        }
+
+        .report-table th:nth-child(4),
+        .report-table td:nth-child(4) {
+            width: 90px !important;
+            min-width: 90px !important;
+            max-width: 90px !important;
+        }
+
+        .report-table th:nth-child(5),
+        .report-table td:nth-child(5) {
+            width: 420px !important;
+            min-width: 420px !important;
+            max-width: 420px !important;
+            text-align: left !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            line-height: 1.6 !important;
+            max-width: 50ch !important;
+        }
+
+        .report-table th:nth-child(6),
+        .report-table td:nth-child(6) {
+            width: 95px !important;
+            min-width: 95px !important;
+            max-width: 95px !important;
+        }
+
+        .report-table th:nth-child(7),
+        .report-table td:nth-child(7) {
+            width: 95px !important;
+            min-width: 95px !important;
+            max-width: 95px !important;
+        }
+
+        .report-table th:nth-child(8),
+        .report-table td:nth-child(8) {
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+        }
+
+        .report-table th:nth-child(9),
+        .report-table td:nth-child(9) {
+            width: 95px !important;
+            min-width: 95px !important;
+            max-width: 95px !important;
+        }
+
+        .report-table th:nth-child(10),
+        .report-table td:nth-child(10) {
+            width: 80px !important;
+            min-width: 80px !important;
+            max-width: 80px !important;
+        }
+
+    .table-preview-img {
+        width: 52px !important;
+        height: 40px !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
 </style>

@@ -38,23 +38,29 @@ namespace E_MIL_Tracking_system.Services
 
             using var smtp = new SmtpClient();
 
-            await smtp.ConnectAsync(
-                _smtpSettings.Host,
-                _smtpSettings.Port,
-                SecureSocketOptions.None
-            );
+            try
+            {
+                smtp.Timeout = 60000;
 
-            //if (!string.IsNullOrWhiteSpace(_smtpSettings.Username) &&
-            //    !string.IsNullOrWhiteSpace(_smtpSettings.Password))
-            //{
-            //    await smtp.AuthenticateAsync(
-            //        _smtpSettings.Username,
-            //        _smtpSettings.Password
-            //    );
-            //}
+                await smtp.ConnectAsync(
+                    _smtpSettings.Host,
+                    _smtpSettings.Port,
+                    SecureSocketOptions.None
+                );
 
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                await smtp.SendAsync(email);
+
+                await smtp.DisconnectAsync(true);
+            }
+            catch
+            {
+                if (smtp.IsConnected)
+                {
+                    await smtp.DisconnectAsync(false);
+                }
+
+                throw;
+            }
         }
 
         public async Task SendEmailWithInlineImagesAsync(
@@ -111,26 +117,31 @@ namespace E_MIL_Tracking_system.Services
 
             builder.HtmlBody = htmlBody;
             email.Body = builder.ToMessageBody();
-
             using var smtp = new SmtpClient();
 
-            await smtp.ConnectAsync(
-                 _smtpSettings.Host,
-                 _smtpSettings.Port,
-                 SecureSocketOptions.None
-             );
+            try
+            {
+                smtp.Timeout = 60000;
 
-            //if (!string.IsNullOrWhiteSpace(_smtpSettings.Username) &&
-            //    !string.IsNullOrWhiteSpace(_smtpSettings.Password))
-            //{
-            //    await smtp.AuthenticateAsync(
-            //        _smtpSettings.Username,
-            //        _smtpSettings.Password
-            //    );
-            //}
+                await smtp.ConnectAsync(
+                    _smtpSettings.Host,
+                    _smtpSettings.Port,
+                    SecureSocketOptions.None
+                );
 
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                await smtp.SendAsync(email);
+
+                await smtp.DisconnectAsync(true);
+            }
+            catch
+            {
+                if (smtp.IsConnected)
+                {
+                    await smtp.DisconnectAsync(false);
+                }
+
+                throw;
+            }
         }
     }
 }

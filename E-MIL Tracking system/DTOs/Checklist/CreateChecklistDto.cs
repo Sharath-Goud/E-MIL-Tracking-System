@@ -55,9 +55,11 @@ namespace E_MIL_Tracking_system.DTOs.Checklist
 
         [Required(ErrorMessage = "Type of Audit is required.")]
         public string? TypeOfAudit { get; set; }
+        [Required(ErrorMessage = "Auditor is required.")]
+        public string? Auditor { get; set; }
 
         [Required(ErrorMessage = "Before Image is required.")]
-        public IFormFile? BeforeImage { get; set; }
+        public List<IFormFile>? BeforeImages { get; set; }
 
         [Required(ErrorMessage = "Status is required.")]
         public string? Status { get; set; }

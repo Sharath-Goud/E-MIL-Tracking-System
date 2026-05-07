@@ -19,23 +19,31 @@ namespace E_MIL_Tracking_system.Services
 
         public async Task<int> SaveAsync(CreateChecklistDto dto, string webRootPath)
         {
-            string imagePath = "";
+            var beforeImagePaths = new List<string>();
 
-            if (dto.BeforeImage != null && dto.BeforeImage.Length > 0)
+            if (dto.BeforeImages != null && dto.BeforeImages.Any())
             {
-                var folder = Path.Combine(webRootPath, "uploads");
+                var folder = Path.Combine(webRootPath, "uploads", "checklist");
 
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                var fileName = Guid.NewGuid() + Path.GetExtension(dto.BeforeImage.FileName);
-                var fullPath = Path.Combine(folder, fileName);
+                foreach (var image in dto.BeforeImages)
+                {
+                    if (image == null || image.Length == 0)
+                        continue;
 
-                using var stream = new FileStream(fullPath, FileMode.Create);
-                await dto.BeforeImage.CopyToAsync(stream);
+                    var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+                    var fullPath = Path.Combine(folder, fileName);
 
-                imagePath = "/uploads/" + fileName;
+                    using var stream = new FileStream(fullPath, FileMode.Create);
+                    await image.CopyToAsync(stream);
+
+                    beforeImagePaths.Add("/uploads/checklist/" + fileName);
+                }
             }
+
+            string imagePath = string.Join(",", beforeImagePaths);
 
             return await _repo.InsertAsync(dto, imagePath);
         }
