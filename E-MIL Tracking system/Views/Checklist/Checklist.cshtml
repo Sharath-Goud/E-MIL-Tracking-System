@@ -16,9 +16,6 @@
 <div class="checklist-page">
     <div class="checklist-card">
         <h2 class="checklist-title">Checklist Form</h2>
-        <p style="color:white">
-            Is Admin: @isAdmin
-        </p>
         <form id="checklistForm" class="checklist-form" asp-controller="Checklist"
               asp-action="Create"
               method="post"
@@ -517,8 +514,24 @@
 
         <hr class="form-divider">
         <div class="table-section">
-            <h3 class="table-title">Checklist Records</h3>
+            <div class="table-header-row">
+                <h3 class="table-title">Checklist Records</h3>
 
+                @if (isAdmin)
+                {
+                    <form asp-controller="Checklist"
+                          asp-action="SendTodayChecklistMail"
+                          method="post"
+                          class="table-submit-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit" class="save-btn">
+                            Submit Today Records
+                        </button>
+                    </form>
+                }
+            </div>
             <div class="table-wrapper">
                 <table class="checklist-table" id="checklistTable">
                     <thead>
@@ -543,10 +556,13 @@
                         </tr>
                     </thead>
                     <tbody id="checklistTableBody">
-                        @if (Model != null && Model.Any())
+                        @if (Model != null && Model.Any(x => x.Date.HasValue && x.Date.Value.Date == DateTime.Today))
                         {
                             int serialNo = 1;
-                            foreach (var item in Model.Take(6))
+
+                            foreach (var item in Model
+                            .Where(x => x.Date.HasValue && x.Date.Value.Date == DateTime.Today)
+                            .OrderByDescending(x => x.Date))
                             {
                                 <tr>
                                     <td>@serialNo</td>
@@ -581,15 +597,22 @@
                                     </td>
                                     <td>
                                         <span class="status-badge
-                                            @(item.Status == "Ongoing" ? "status-ongoing" :
-                                              item.Status == "Closed" ? "status-closed" :
-                                              item.Status == "Drop" ? "status-drop" : "status-default")">
+                                        @(item.Status == "Ongoing" ? "status-ongoing" :
+                                          item.Status == "Closed" ? "status-closed" :
+                                          item.Status == "Drop" ? "status-drop" : "status-default")">
                                             @item.Status
                                         </span>
                                     </td>
                                 </tr>
+
                                 serialNo++;
                             }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="17" style="text-align:center;">No records found for today</td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -607,7 +630,9 @@
             </button>
 
             <h3 id="dropdownPopupTitle">Add Value</h3>
-
+            <select id="dropdownEditSelect" style="display:none;" class="popup-edit-select">
+                <option value="">Select value</option>
+            </select>
             <input type="text" id="dropdownNewValue" placeholder="Enter value" />
 
             <p id="deleteConfirmText" class="delete-confirm-text" style="display:none;"></p>
@@ -645,21 +670,16 @@
 
     const beforeImageInput = document.getElementById("beforeImage");
 
-    if (beforeImageInput) {
+        if (beforeImageInput) {
         beforeImageInput.addEventListener("change", function (e) {
             const files = Array.from(e.target.files);
 
             files.forEach(file => {
-                const exists = beforeSelectedFiles.some(x =>
-                    x.name === file.name && x.size === file.size
-                );
-
-                if (!exists) {
-                    beforeSelectedFiles.push(file);
-                }
+                beforeSelectedFiles.push(file);
             });
 
             updateMultipleImagePreview();
+            e.target.value = "";
         });
     }
 
@@ -673,7 +693,6 @@
         if (beforeSelectedFiles.length === 0) {
             text.style.display = "inline";
             previewBox.appendChild(text);
-            fileInput.value = "";
             updateStatusAutomatically();
             return;
         }
@@ -1078,7 +1097,7 @@
         "auditor"
     ];
 
-    function openDropdownPopup(dropdownId, labelName, mode) {
+        function openDropdownPopup(dropdownId, labelName, mode) {
         activeDropdownId = dropdownId;
         activeDropdownLabel = labelName;
         dropdownActionMode = mode;
@@ -1087,9 +1106,12 @@
         const input = document.getElementById("dropdownNewValue");
         const title = document.getElementById("dropdownPopupTitle");
         const deleteText = document.getElementById("deleteConfirmText");
+        const editSelect = document.getElementById("dropdownEditSelect");
 
         input.value = "";
         input.style.display = "block";
+        editSelect.style.display = "none";
+        editSelect.innerHTML = `<option value="">Select ${labelName}</option>`;
         deleteText.style.display = "none";
         deleteText.innerText = "";
 
@@ -1099,15 +1121,24 @@
         }
 
         if (mode === "edit") {
-            if (!dropdown || !dropdown.value) {
-                showToast("Please select " + labelName + " to edit", "linear-gradient(to right, #ff5f6d, #ffc371)");
-                return;
-            }
-
-            selectedOldValue = dropdown.value;
             title.innerText = "Edit " + labelName;
-            input.value = selectedOldValue;
-            input.placeholder = "Edit " + labelName;
+            input.placeholder = "Or enter new " + labelName;
+
+            editSelect.style.display = "block";
+
+            Array.from(dropdown.options).forEach(option => {
+                if (option.value && option.value.trim() !== "") {
+                    const opt = document.createElement("option");
+                    opt.value = option.value;
+                    opt.text = option.text;
+                    editSelect.appendChild(opt);
+                }
+            });
+
+            editSelect.onchange = function () {
+                input.value = this.value;
+                selectedOldValue = this.value;
+            };
         }
 
         if (mode === "delete") {
@@ -1119,15 +1150,12 @@
             selectedOldValue = dropdown.value;
             title.innerText = "Delete " + labelName;
             input.style.display = "none";
+            editSelect.style.display = "none";
             deleteText.style.display = "block";
             deleteText.innerText = "Are you sure you want to delete '" + selectedOldValue + "'?";
         }
 
         document.getElementById("dropdownPopup").classList.add("show");
-
-        setTimeout(() => {
-            if (mode !== "delete") input.focus();
-        }, 100);
     }
 
     function closeDropdownPopup() {
@@ -1176,36 +1204,54 @@
         showToast("Added successfully", "linear-gradient(to right, #00b09b, #96c93d)");
     }
 
-    function updateDropdownValue() {
+        function updateDropdownValue() {
         const input = document.getElementById("dropdownNewValue");
-        const newValue = input.value.trim();
+        const editSelect = document.getElementById("dropdownEditSelect");
         const dropdown = document.getElementById(activeDropdownId);
 
-        if (!newValue) {
-            showToast(activeDropdownLabel + " cannot be empty", "linear-gradient(to right, #ff5f6d, #ffc371)");
+        const selectedValue = editSelect.value.trim();
+        const newValue = input.value.trim();
+
+        if (!selectedValue && !newValue) {
+            showToast("Please select or enter " + activeDropdownLabel, "linear-gradient(to right, #ff5f6d, #ffc371)");
             return;
         }
 
-        const duplicate = Array.from(dropdown.options).some(option =>
-            option.value.toLowerCase() === newValue.toLowerCase() &&
-            option.value.toLowerCase() !== selectedOldValue.toLowerCase()
-        );
+        if (selectedValue && newValue) {
+            const selectedOption = Array.from(dropdown.options)
+                .find(option => option.value === selectedValue);
 
-        if (duplicate) {
-            showToast(activeDropdownLabel + " already exists", "linear-gradient(to right, #ff5f6d, #ffc371)");
-            return;
+            if (selectedOption) {
+                selectedOption.value = newValue;
+                selectedOption.text = newValue;
+            }
+
+            dropdown.value = newValue;
+            updateDropdownLocalStorage(activeDropdownId, selectedValue, newValue);
+            showToast("Updated successfully", "linear-gradient(to right, #00b09b, #96c93d)");
+        }
+        else if (!selectedValue && newValue) {
+            const exists = Array.from(dropdown.options).some(option =>
+                option.value.toLowerCase() === newValue.toLowerCase()
+            );
+
+            if (exists) {
+                showToast(activeDropdownLabel + " already exists", "linear-gradient(to right, #ff5f6d, #ffc371)");
+                return;
+            }
+
+            const option = document.createElement("option");
+            option.value = newValue;
+            option.text = newValue;
+            dropdown.appendChild(option);
+            dropdown.value = newValue;
+
+            saveDropdownValueToLocalStorage(activeDropdownId, newValue);
+            showToast("Added successfully", "linear-gradient(to right, #00b09b, #96c93d)");
         }
 
-        const selectedOption = dropdown.options[dropdown.selectedIndex];
-        selectedOption.value = newValue;
-        selectedOption.text = newValue;
-        dropdown.value = newValue;
-
-        updateDropdownLocalStorage(activeDropdownId, selectedOldValue, newValue);
         updateStatusAutomatically();
         closeDropdownPopup();
-
-        showToast("Updated successfully", "linear-gradient(to right, #00b09b, #96c93d)");
     }
 
     function deleteSelectedDropdownValue() {
@@ -1763,30 +1809,29 @@
         }
 
     .camera-inside-btn {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
         border: none;
         background: #ffffff;
         color: #1d2545;
-        width: 34px;
-        height: 34px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         display: flex;
         align-items: center;
         justify-content: center;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         transition: 0.3s ease;
-        margin-bottom: 30px;
+        flex-shrink: 0;
+        position: static;
+        transform: none;
+        align-self: center;
+        padding: 0;
+        line-height: 1;
     }
 
-        .camera-inside-btn:hover {
-            background: #1d2545;
-            color: #fff;
-            transform: translateY(-50%) scale(1.1);
+        .camera-inside-btn i {
+            line-height: 1;
         }
 
     .table-section {
@@ -1977,14 +2022,14 @@
 
     .custom-file-box {
         width: 100%;
-        min-height: 42px;
+        height: 42px;
         border: 1px solid #a9b5d0;
         border-radius: 12px;
         background: linear-gradient(to bottom, #eef1fb, #c8cef1);
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 4px 8px;
+        padding: 0 8px;
         box-sizing: border-box;
         position: relative;
         overflow: visible;
@@ -2010,7 +2055,7 @@
     .choose-file-btn {
         background: #14162C;
         color: #fff;
-        width: auti;
+        width: auto;
         height: 32px;
         border-radius: 8px;
         font-size: 13px;
@@ -2019,39 +2064,47 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        margin-top: 5px;
+        margin: 0;
         white-space: nowrap;
-        padding: 0px 5px;
+        padding: 0 8px;
+        margin-top: 7px;
     }
 
     .file-display-area {
         flex: 1;
         min-width: 0;
+        height: 36px;
         display: flex;
         align-items: center;
         gap: 8px;
         overflow-x: auto;
         overflow-y: visible;
-        padding: 4px 36px 4px 0;
+        padding: 4px 4px;
     }
 
+
     .inside-preview-item {
-        width: 34px;
-        height: 34px;
+        width: 30px;
+        height: 30px;
         position: relative;
-        flex-shrink: 0;
+        flex: 0 0 30px;
     }
 
         .inside-preview-item img {
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             object-fit: cover;
-            border-radius: 7px;
+            border-radius: 6px;
             border: 1px solid #bcc7e4;
             cursor: pointer;
         }
 
-    .inside-preview-remove {
+    .camera-inside-btn:hover {
+        background: #1d2545;
+        color: #fff;
+        transform: scale(1.1);
+    }
+        .inside-preview-remove {
         position: absolute;
         top: -7px;
         right: -7px;
@@ -2106,31 +2159,6 @@
 
         .remove-image-btn:hover {
             background: #dc2626;
-            transform: scale(1.08);
-        }
-
-    .camera-inside-btn {
-        border: none;
-        background: #ffffff;
-        color: #1d2545;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        transition: 0.3s ease;
-        flex-shrink: 0;
-        position: static;
-        transform: none;
-    }
-
-        .camera-inside-btn:hover {
-            background: #1d2545;
-            color: #fff;
             transform: scale(1.08);
         }
 
@@ -2590,5 +2618,60 @@
         font-size: 14px;
         margin: 10px 0;
         font-weight: 600;
+    }
+
+    .popup-edit-select {
+        width: 100%;
+        height: 42px;
+        border: 1px solid #a9b5d0;
+        border-radius: 12px;
+        outline: none;
+        padding: 0 14px;
+        font-size: 14px;
+        color: #2a3245;
+        background: linear-gradient(to bottom, #eef1fb, #c8cef1);
+        box-sizing: border-box;
+        margin-bottom: 12px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        transition: all 0.3s ease;
+    }
+
+        .popup-edit-select:focus {
+            border-color: #6b7fd7;
+            box-shadow: 0 0 0 3px rgba(107, 127, 215, 0.18);
+            background: #ffffff;
+        }
+
+        .popup-edit-select:hover {
+            border-color: #8ea1e8;
+        }
+
+    #dropdownNewValue {
+        width: 100%;
+        height: 42px;
+        border: 1px solid #a9b5d0;
+        border-radius: 12px;
+        padding: 0 14px;
+        box-sizing: border-box;
+        margin-bottom: 18px;
+    }
+
+    .table-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+        .table-header-row .table-title {
+            margin: 0;
+        }
+
+    .table-submit-form {
+        margin: 0;
     }
 </style>

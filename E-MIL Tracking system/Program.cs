@@ -27,7 +27,6 @@ builder.Services.Configure<SmtpSettings>(
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddSingleton<IBackgroundEmailQueue, BackgroundEmailQueue>();
 builder.Services.AddHostedService<BackgroundEmailService>();
-builder.Services.AddHostedService<DueDateReminderService>();
 builder.Services.Configure<HostOptions>(options =>
 {
     options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;

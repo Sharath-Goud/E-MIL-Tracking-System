@@ -1,4 +1,5 @@
-﻿using MailKit.Net.Smtp;
+﻿using E_MIL_Tracking_system.DTOs;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -142,6 +143,63 @@ namespace E_MIL_Tracking_system.Services
 
                 throw;
             }
+        }
+
+        public async Task SendEmailWithMultipleInlineImagesAsync(
+    string toEmail,
+    string subject,
+    string htmlBody,
+    List<InlineEmailImage> inlineImages)
+        {
+            var message = new MimeMessage();
+
+            message.From.Add(new MailboxAddress(
+                _smtpSettings.SenderName,
+                _smtpSettings.SenderEmail
+            ));
+
+            foreach (var email in toEmail.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                message.To.Add(MailboxAddress.Parse(email.Trim()));
+            }
+
+            message.Subject = subject;
+
+            var builder = new BodyBuilder
+            {
+                HtmlBody = htmlBody
+            };
+
+            foreach (var img in inlineImages)
+            {
+                if (File.Exists(img.FilePath))
+                {
+                    var image = builder.LinkedResources.Add(img.FilePath);
+                    image.ContentId = img.ContentId;
+                    image.ContentDisposition = new ContentDisposition(ContentDisposition.Inline);
+                }
+            }
+
+            message.Body = builder.ToMessageBody();
+
+            using var client = new MailKit.Net.Smtp.SmtpClient();
+
+            await client.ConnectAsync(
+                _smtpSettings.Host,
+                _smtpSettings.Port,
+                MailKit.Security.SecureSocketOptions.None
+            );
+
+            if (!string.IsNullOrWhiteSpace(_smtpSettings.Username))
+            {
+                await client.AuthenticateAsync(
+                    _smtpSettings.Username,
+                    _smtpSettings.Password
+                );
+            }
+
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
         }
     }
 }

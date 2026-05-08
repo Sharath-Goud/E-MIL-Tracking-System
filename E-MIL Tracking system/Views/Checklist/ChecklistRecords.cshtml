@@ -9,6 +9,106 @@
     <div class="checklist-card">
         <div class="table-section">
             <h3 class="table-title">Checklist Records</h3>
+            <form asp-controller="Checklist"
+                  asp-action="ChecklistRecords"
+                  method="get"
+                  class="filter-box">
+
+                <div class="filter-item">
+                    <label>Month</label>
+
+                    <select name="month">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m" selected="@(ViewBag.SelectedMonth == m)">
+                                @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Year</label>
+
+                    <select name="year">
+                        @for (int y = DateTime.Now.Year - 5;
+                        y <= DateTime.Now.Year + 1;
+                        y++)
+                        {
+                            <option value="@y"
+                                    selected="@(ViewBag.SelectedYear == y)">
+                                @y
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Week</label>
+
+                    <select name="week">
+                        <option value="0">All Weeks</option>
+
+                        <option value="1"
+                                selected="@(ViewBag.SelectedWeek == 1)">
+                            Week 1
+                        </option>
+
+                        <option value="2"
+                                selected="@(ViewBag.SelectedWeek == 2)">
+                            Week 2
+                        </option>
+
+                        <option value="3"
+                                selected="@(ViewBag.SelectedWeek == 3)">
+                            Week 3
+                        </option>
+
+                        <option value="4"
+                                selected="@(ViewBag.SelectedWeek == 4)">
+                            Week 4
+                        </option>
+
+                        <option value="5"
+                                selected="@(ViewBag.SelectedWeek == 5)">
+                            Week 5
+                        </option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Status</label>
+
+                    <select name="status">
+                        <option value="">All Status</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Closed">Closed</option>
+                        <option value="Drop">Drop</option>
+                    </select>
+                </div>
+
+                <div class="filter-item search-box">
+                    <label>Search</label>
+
+                    <input type="text"
+                           name="searchText"
+                           value="@ViewBag.SearchText"
+                           placeholder="Search here..." />
+                </div>
+
+                <div class="filter-buttons">
+                    <button type="submit" class="apply-filter-btn">
+                        Apply Filter
+                    </button>
+
+                    <a asp-controller="Checklist"
+                       asp-action="ChecklistRecords"
+                       class="reset-filter-btn">
+                        Reset
+                    </a>
+                </div>
+
+            </form>
             <div class="table-wrapper">
                 <table class="checklist-table" id="checklistTable">
                     <thead>
@@ -1671,5 +1771,84 @@
     .checklist-table td:nth-child(18) .table-preview-img {
         width: 48px !important;
         height: 38px !important;
+    }
+
+    .filter-box {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+        .filter-item label {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .filter-item select,
+        .filter-item input {
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid #a9b5d0;
+            outline: none;
+            padding: 0 12px;
+            font-size: 13px;
+            font-weight: 600;
+            background: linear-gradient(to bottom, #eef1fb, #c8cef1);
+            color: #111827;
+        }
+
+    .search-box {
+        grid-column: span 2;
+    }
+
+    .filter-buttons {
+        display: flex;
+        align-items: end;
+        gap: 10px;
+    }
+
+    .apply-filter-btn,
+    .reset-filter-btn {
+        height: 42px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .apply-filter-btn {
+        background: #6366f1;
+        color: #fff;
+    }
+
+    .reset-filter-btn {
+        background: #fff;
+        color: #111827;
+    }
+
+    .apply-filter-btn:hover {
+        background: #4338ca;
+    }
+
+    .reset-filter-btn:hover {
+        background: #e5e7eb;
     }
 </style>

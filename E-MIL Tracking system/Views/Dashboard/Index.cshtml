@@ -112,7 +112,11 @@
             <h3>Audit Report</h3>
 
             @{
-                var selectedWeekIndex = (int)ViewBag.SelectedWeek - 1;
+                int currentYear = ViewBag.SelectedYear != null
+                ? Convert.ToInt32(ViewBag.SelectedYear)
+                : DateTime.Now.Year;
+
+                var selectedWeekIndex = Convert.ToInt32(ViewBag.SelectedWeek) - 1;
                 var row = ViewBag.AuditTableRows[selectedWeekIndex];
             }
 
@@ -137,13 +141,73 @@
                                 }
                             </tr>
 
-                            <tr>
-                                <th class="row-head audit-row">Audit Hour</th>
-                                @foreach (var item in row.AuditHours)
+                        <tr>
+                            <th class="row-head audit-row">Audit Hour</th>
+
+                            @for (int i = 0; i < row.AuditHours.Count; i++)
+                            {
+                                var isSaved = !string.IsNullOrWhiteSpace(
+                                Convert.ToString(row.AuditHours[i])
+                                );
+
+                                bool isWeekColumn = i == 0;
+                                bool isFutureDate = false;
+
+                                if (!isWeekColumn)
                                 {
-                                    <td>@item</td>
+                                    var fullDateText = row.Dates[i] + "-" + currentYear;
+
+                                    if (DateTime.TryParseExact(
+                                    fullDateText,
+                                    "dd-MMM-yyyy",
+                                    System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.None,
+                                    out DateTime parsedDate))
+                                    {
+                                        if (parsedDate.Date > DateTime.Today.Date)
+                                        {
+                                            isFutureDate = true;
+                                        }
+                                    }
                                 }
-                            </tr>
+
+                                bool isReadonly = isSaved || isFutureDate || isWeekColumn;
+
+                                <td>
+                                    <form asp-controller="Checklist"
+                                          asp-action="SaveAuditHour"
+                                          method="post"
+                                          class="audit-hour-form">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="AuditDateText"
+                                               value="@row.Dates[i]" />
+                                        <input type="hidden"
+                                               name="ReturnUrl"
+                                               value="/Dashboard/Index?month=@ViewBag.SelectedMonth&year=@ViewBag.SelectedYear&week=@ViewBag.SelectedWeek" />
+
+                                        <input type="number"
+                                               step="0.1"
+                                               name="AuditHour"
+                                               class="audit-input @(isReadonly ? "saved-input" : "")"
+                                               value="@row.AuditHours[i]"
+                                               placeholder="Audit Hour"
+                                        @(isReadonly ? "readonly" : "") />
+
+                                        @if (!isReadonly)
+                                        {
+                                            <button type="submit"
+                                                    class="audit-tick-btn"
+                                                    title="Save Audit Hour">
+                                                <i class="fa fa-check"></i>
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                            }
+                        </tr>
 
                             <tr>
                                 <th class="row-head finding-row">Finding/Hour</th>
@@ -1168,4 +1232,90 @@
             border-right: 9px solid transparent;
         }
 
+    .audit-hour-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .audit-input {
+        width: 100%;
+        height: 42px;
+        border: 1px solid #a9b5d0;
+        border-radius: 12px;
+        outline: none;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: #2a3245;
+        background: linear-gradient(to bottom, #eef1fb, #c8cef1);
+        box-sizing: border-box;
+        transition: all 0.25s ease;
+        text-align: left;
+        flex: 1;
+    }
+
+        .audit-input::placeholder {
+            color: #2a3245;
+            opacity: 1;
+        }
+
+        .audit-input:hover {
+            border-color: #8ea1e8;
+            box-shadow: 0 4px 12px rgba(107, 127, 215, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .audit-input:focus {
+            border-color: #6b7fd7;
+            box-shadow: 0 0 0 3px rgba(107, 127, 215, 0.18);
+            background: #ffffff;
+        }
+
+    .audit-tick-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        border: none;
+        border-radius: 50%;
+        background: #22c55e;
+        color: #ffffff;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        transition: 0.3s ease;
+    }
+
+    .audit-hour-form:has(.audit-input:not(:placeholder-shown)) .audit-tick-btn {
+        display: flex;
+    }
+
+    .audit-tick-btn:hover {
+        background: #16a34a;
+        transform: scale(1.08);
+    }
+
+    .saved-input {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        text-align: center;
+        pointer-events: none;
+        padding-left: 0;
+    }
+
+        .saved-input:hover,
+        .saved-input:focus {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .saved-input::placeholder {
+            color: transparent;
+        }
 </style>

@@ -36,24 +36,222 @@ namespace E_MIL_Tracking_system.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ChecklistRecords()
+        public async Task<IActionResult> ChecklistRecords(
+            int? month,
+            int? year,
+            int? week,
+            string? status,
+            string? searchText)
         {
             var records = await _service.GetAllAsync();
-            return View(records);
+
+            int selectedMonth = month ?? DateTime.Now.Month;
+            int selectedYear = year ?? DateTime.Now.Year;
+            int selectedWeek = week ?? 0;
+
+            var filteredRecords = records
+                .Where(x => x.Date.HasValue &&
+                            x.Date.Value.Month == selectedMonth &&
+                            x.Date.Value.Year == selectedYear)
+                .ToList();
+
+            if (selectedWeek > 0)
+            {
+                var firstDayOfMonth = new DateTime(selectedYear, selectedMonth, 1);
+
+                var weekStart = firstDayOfMonth.AddDays((selectedWeek - 1) * 7);
+                var weekEnd = weekStart.AddDays(6);
+
+                filteredRecords = filteredRecords
+                    .Where(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date >= weekStart.Date &&
+                        x.Date.Value.Date <= weekEnd.Date &&
+                        x.Date.Value.Month == selectedMonth)
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                filteredRecords = filteredRecords
+                    .Where(x => x.Status == status)
+                    .ToList();
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                string search = searchText.Trim().ToLower();
+
+                filteredRecords = filteredRecords
+                    .Where(x =>
+                        (x.Section ?? "").ToLower().Contains(search) ||
+                        (x.StationName ?? "").ToLower().Contains(search) ||
+                        (x.IssueType ?? "").ToLower().Contains(search) ||
+                        (x.ProblemStatement ?? "").ToLower().Contains(search) ||
+                        (x.CmDri ?? "").ToLower().Contains(search) ||
+                        (x.RespectiveDepartment ?? "").ToLower().Contains(search) ||
+                        (x.AppleDri ?? "").ToLower().Contains(search) ||
+                        (x.Auditor ?? "").ToLower().Contains(search))
+                    .ToList();
+            }
+
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.SelectedWeek = selectedWeek;
+            ViewBag.SelectedStatus = status;
+            ViewBag.SearchText = searchText;
+
+            return View(filteredRecords
+                .OrderByDescending(x => x.Date)
+                .ToList());
         }
 
         [HttpGet]
-        public async Task<IActionResult> Reports()
+        public async Task<IActionResult> Reports(
+    int? month,
+    int? year,
+    int? week,
+    string? status,
+    string? searchText)
         {
             var records = await _service.GetAllAsync();
-            return View("~/Views/Reports/Reports.cshtml", records);
+
+            int selectedMonth = month ?? DateTime.Now.Month;
+            int selectedYear = year ?? DateTime.Now.Year;
+            int selectedWeek = week ?? 0;
+
+            var filteredRecords = records
+                .Where(x => x.Date.HasValue &&
+                            x.Date.Value.Month == selectedMonth &&
+                            x.Date.Value.Year == selectedYear &&
+                            x.Date.Value.DayOfWeek != DayOfWeek.Sunday)
+                .ToList();
+
+            if (selectedWeek > 0)
+            {
+                var firstDayOfMonth = new DateTime(selectedYear, selectedMonth, 1);
+
+                var workingDays = Enumerable.Range(0, DateTime.DaysInMonth(selectedYear, selectedMonth))
+                    .Select(i => firstDayOfMonth.AddDays(i))
+                    .Where(d => d.DayOfWeek != DayOfWeek.Sunday)
+                    .ToList();
+
+                var selectedWeekDates = workingDays
+                    .Skip((selectedWeek - 1) * 6)
+                    .Take(6)
+                    .Select(d => d.Date)
+                    .ToHashSet();
+
+                filteredRecords = filteredRecords
+                    .Where(x => x.Date.HasValue &&
+                                selectedWeekDates.Contains(x.Date.Value.Date))
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                filteredRecords = filteredRecords
+                    .Where(x => x.Status == status)
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                string search = searchText.Trim().ToLower();
+
+                filteredRecords = filteredRecords
+                    .Where(x =>
+                        (x.Section ?? "").ToLower().Contains(search) ||
+                        (x.StationName ?? "").ToLower().Contains(search) ||
+                        (x.IssueType ?? "").ToLower().Contains(search) ||
+                        (x.ProblemStatement ?? "").ToLower().Contains(search) ||
+                        (x.CmDri ?? "").ToLower().Contains(search) ||
+                        (x.RespectiveDepartment ?? "").ToLower().Contains(search) ||
+                        (x.AppleDri ?? "").ToLower().Contains(search) ||
+                        (x.Auditor ?? "").ToLower().Contains(search))
+                    .ToList();
+            }
+
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.SelectedWeek = selectedWeek;
+            ViewBag.SelectedStatus = status;
+            ViewBag.SearchText = searchText;
+
+            return View("~/Views/Reports/Reports.cshtml",
+                filteredRecords.OrderByDescending(x => x.Date).ToList());
         }
 
         [HttpGet]
-        public async Task<IActionResult> A2Reports()
+        public async Task<IActionResult> A2Reports(
+            int? month,
+            int? year,
+            int? week,
+            string? status,
+            string? searchText)
         {
             var records = await _service.GetAllAsync();
-            return View("~/Views/Checklist/A2Reports.cshtml",records);
+
+            int selectedMonth = month ?? DateTime.Now.Month;
+            int selectedYear = year ?? DateTime.Now.Year;
+            int selectedWeek = week ?? 0;
+
+            var filteredRecords = records
+                .Where(x => x.Date.HasValue &&
+                            x.Date.Value.Month == selectedMonth &&
+                            x.Date.Value.Year == selectedYear)
+                .ToList();
+
+            if (selectedWeek > 0)
+            {
+                var firstDayOfMonth = new DateTime(selectedYear, selectedMonth, 1);
+
+                var weekStart = firstDayOfMonth.AddDays((selectedWeek - 1) * 7);
+                var weekEnd = weekStart.AddDays(6);
+
+                filteredRecords = filteredRecords
+                    .Where(x =>
+                        x.Date.HasValue &&
+                        x.Date.Value.Date >= weekStart.Date &&
+                        x.Date.Value.Date <= weekEnd.Date &&
+                        x.Date.Value.Month == selectedMonth)
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                filteredRecords = filteredRecords
+                    .Where(x => x.Status == status)
+                    .ToList();
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                string search = searchText.Trim().ToLower();
+
+                filteredRecords = filteredRecords
+                    .Where(x =>
+                        (x.Section ?? "").ToLower().Contains(search) ||
+                        (x.StationName ?? "").ToLower().Contains(search) ||
+                        (x.IssueType ?? "").ToLower().Contains(search) ||
+                        (x.ProblemStatement ?? "").ToLower().Contains(search) ||
+                        (x.CmDri ?? "").ToLower().Contains(search) ||
+                        (x.RespectiveDepartment ?? "").ToLower().Contains(search) ||
+                        (x.AppleDri ?? "").ToLower().Contains(search) ||
+                        (x.Auditor ?? "").ToLower().Contains(search))
+                    .ToList();
+            }
+
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.SelectedWeek = selectedWeek;
+            ViewBag.SelectedStatus = status;
+            ViewBag.SearchText = searchText;
+
+            return View("~/Views/Checklist/A2Reports.cshtml",
+                filteredRecords.OrderByDescending(x => x.Date).ToList());
         }
 
         [HttpPost]
@@ -77,132 +275,133 @@ namespace E_MIL_Tracking_system.Controllers
                 return RedirectToAction(nameof(Checklist));
             }
 
-            string subject = $"MIL Audit report {DateTime.Now:dd-MM-yyyy}";
+            //string subject = $"MIL Audit report {DateTime.Now:dd-MM-yyyy}";
 
-            string body = $@"
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset='UTF-8'>
-                </head>
-                <body style='margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif; color:#1f2937;'>
+            //string body = $@"
+            //    <!DOCTYPE html>
+            //    <html>
+            //    <head>
+            //        <meta charset='UTF-8'>
+            //    </head>
+            //    <body style='margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif; color:#1f2937;'>
 
-                    <div style='max-width:1200px; margin:0 auto; padding:24px;'>
+            //        <div style='max-width:1200px; margin:0 auto; padding:24px;'>
 
-                        <div style='background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:22px;'>
+            //            <div style='background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:22px;'>
 
-                            <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
-                                MIL Audit Report
-                            </h2>
+            //                <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
+            //                    MIL Audit Report
+            //                </h2>
 
-                            <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
+            //                <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
 
-                            <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
+            //                <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
 
-                            <p style='margin:0 0 10px; font-size:14px; line-height:1.6;'>
-                                I have attached the MIL audit points for your review.
-                            </p>
+            //                <p style='margin:0 0 10px; font-size:14px; line-height:1.6;'>
+            //                    I have attached the MIL audit points for your review.
+            //                </p>
 
-                            <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
-                                Please take necessary actions to address the identified issues and provide an update on the CP date,
-                                root cause analysis and corrective actions for the mentioned points.
-                            </p>
+            //                <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
+            //                    Please take necessary actions to address the identified issues and provide an update on the CP date,
+            //                    root cause analysis and corrective actions for the mentioned points.
+            //                </p>
 
-                            <div style='overflow-x:auto; width:100%;'>
-                                 <table cellpadding='0' cellspacing='0'
-                                    style='border-collapse:collapse; width:100%; min-width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
+            //                <div style='overflow-x:auto; width:100%;'>
+            //                     <table cellpadding='0' cellspacing='0'
+            //                        style='border-collapse:collapse; width:100%; min-width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
 
-                                     <thead>
-                                        <tr style='background:#d7e5e1; color:#111827;'>
-                                            <th style='width:60px; border:1px solid #c4cfd4; padding:10px 8px;'>S.NO</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Date</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Week<br/>Code</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Month</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Project</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Section</th>
-                                            <th style='width:80px; border:1px solid #c4cfd4; padding:10px 8px;'>Line</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Station Name</th>
-                                            <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Problem Statement</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Frequency</th>
-                                            <th style='width:110px; border:1px solid #c4cfd4; padding:10px 8px;'>Issue<br/>Severity</th>
-                                            <th style='width:150px; border:1px solid #c4cfd4; padding:10px 8px;'>Category</th>
-                                            <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Corrective Action</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Due Date</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>CM DRI</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Apple DRI</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Type of Audit</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Status</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Before Image</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>After Image</th>
-                                        </tr>
-                                    </thead>
+            //                         <thead>
+            //                            <tr style='background:#d7e5e1; color:#111827;'>
+            //                                <th style='width:60px; border:1px solid #c4cfd4; padding:10px 8px;'>S.NO</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Date</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Week<br/>Code</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Month</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Project</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Section</th>
+            //                                <th style='width:80px; border:1px solid #c4cfd4; padding:10px 8px;'>Line</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Station Name</th>
+            //                                <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Problem Statement</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Frequency</th>
+            //                                <th style='width:110px; border:1px solid #c4cfd4; padding:10px 8px;'>Issue<br/>Severity</th>
+            //                                <th style='width:150px; border:1px solid #c4cfd4; padding:10px 8px;'>Category</th>
+            //                                <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Corrective Action</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Due Date</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>CM DRI</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Apple DRI</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Type of Audit</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Status</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Before Image</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>After Image</th>
+            //                            </tr>
+            //                        </thead>
 
-                                    <tbody>
-                                        <tr style='background:#ffffff; color:#1f2937;'>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>1</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.WeekCode}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Month}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.Project}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Section}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Line}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.StationName}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5;'>{savedRecord.ProblemStatement}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Frequency}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Category}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5; font-weight:600;'>{(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.CmDri}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.AppleDri}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.TypeOfAudit}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:700; color:#b45309;'>{savedRecord.Status}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>BEFORE_IMAGE_PLACEHOLDER</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>AFTER_IMAGE_PLACEHOLDER</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
 
-                </body>
-                </html>";
+            //                        <tbody>
+            //                            <tr style='background:#ffffff; color:#1f2937;'>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>1</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.WeekCode}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Month}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.Project}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Section}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Line}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.StationName}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5;'>{savedRecord.ProblemStatement}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Frequency}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Category}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5; font-weight:600;'>{(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.CmDri}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.AppleDri}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.TypeOfAudit}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:700; color:#b45309;'>{savedRecord.Status}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>BEFORE_IMAGE_PLACEHOLDER</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>AFTER_IMAGE_PLACEHOLDER</td>
+            //                            </tr>
+            //                        </tbody>
+            //                    </table>
+            //                </div>
+            //            </div>
+            //        </div>
 
-            string? beforeImageFullPath = null;
-            string? afterImageFullPath = null;
+            //    </body>
+            //    </html>";
 
-            if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
-            {
-                beforeImageFullPath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.BeforeImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
+            //string? beforeImageFullPath = null;
+            //string? afterImageFullPath = null;
 
-            if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
-            {
-                afterImageFullPath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.AfterImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
+            //if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
+            //{
+            //    beforeImageFullPath = Path.Combine(
+            //        _env.WebRootPath,
+            //        savedRecord.BeforeImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+            //    );
+            //}
 
-            //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
-            // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
-            // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
-            _emailQueue.QueueEmail(async cancellationToken =>
-            {
-                await _emailService.SendEmailWithInlineImagesAsync(
-                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
-                    subject,
-                    body,
-                    beforeImageFullPath,
-                    afterImageFullPath
-                );
-            });
+            //if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
+            //{
+            //    afterImageFullPath = Path.Combine(
+            //        _env.WebRootPath,
+            //        savedRecord.AfterImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+            //    );
+            //}
 
-            TempData["SuccessMessage"] = "Checklist form data submitted and mail sent successfully";
+            ////Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
+            //// Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
+            //// Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
+            //_emailQueue.QueueEmail(async cancellationToken =>
+            //{
+            //    await _emailService.SendEmailWithInlineImagesAsync(
+            //        "Sharath_G@foxlink.com",
+            //        subject,
+            //        body,
+            //        beforeImageFullPath,
+            //        afterImageFullPath
+            //    );
+            //});
+
+            TempData["SuccessMessage"] = "Checklist form data submitted successfully";
             return RedirectToAction(nameof(Checklist));
         }
 
@@ -227,125 +426,125 @@ namespace E_MIL_Tracking_system.Controllers
                 return RedirectToAction(nameof(ChecklistRecords));
             }
 
-            string subject = $"MIL Audit RCCA Updated {DateTime.Now:dd-MM-yyyy}";
+            //string subject = $"MIL Audit RCCA Updated {DateTime.Now:dd-MM-yyyy}";
 
-            string body = $@"
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset='UTF-8'>
-                </head>
-                <body style='margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif; color:#1f2937;'>
+            //string body = $@"
+            //    <!DOCTYPE html>
+            //    <html>
+            //    <head>
+            //        <meta charset='UTF-8'>
+            //    </head>
+            //    <body style='margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif; color:#1f2937;'>
 
-                    <div style='max-width:1200px; margin:0 auto; padding:24px;'>
+            //        <div style='max-width:1200px; margin:0 auto; padding:24px;'>
 
-                        <div style='background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:22px;'>
+            //            <div style='background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:22px;'>
 
-                            <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
-                                MIL Audit RCCA Updated
-                            </h2>
+            //                <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
+            //                    MIL Audit RCCA Updated
+            //                </h2>
 
-                            <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
+            //                <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
 
-                            <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
+            //                <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
 
-                            <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
-                                RCCA has been updated for the below MIL audit point. Please review the corrective action details.
-                            </p>
+            //                <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
+            //                    RCCA has been updated for the below MIL audit point. Please review the corrective action details.
+            //                </p>
 
-                            <div style='overflow-x:auto; width:100%;'>
-                                <table cellpadding='0' cellspacing='0'
-                                    style='border-collapse:collapse; width:100%; min-width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
+            //                <div style='overflow-x:auto; width:100%;'>
+            //                    <table cellpadding='0' cellspacing='0'
+            //                        style='border-collapse:collapse; width:100%; min-width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
 
-                                    <thead>
-                                        <tr style='background:#d7e5e1; color:#111827;'>
-                                            <th style='width:60px; border:1px solid #c4cfd4; padding:10px 8px;'>S.NO</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Date</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Week<br/>Code</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Month</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Project</th>
-                                            <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Section</th>
-                                            <th style='width:80px; border:1px solid #c4cfd4; padding:10px 8px;'>Line</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Station Name</th>
-                                            <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Problem Statement</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Frequency</th>
-                                            <th style='width:110px; border:1px solid #c4cfd4; padding:10px 8px;'>Issue<br/>Severity</th>
-                                            <th style='width:150px; border:1px solid #c4cfd4; padding:10px 8px;'>Category</th>
-                                            <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Corrective Action</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Due Date</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>CM DRI</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Apple DRI</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Type of Audit</th>
-                                            <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Status</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Before Image</th>
-                                            <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>After Image</th>
-                                        </tr>
-                                    </thead>
+            //                        <thead>
+            //                            <tr style='background:#d7e5e1; color:#111827;'>
+            //                                <th style='width:60px; border:1px solid #c4cfd4; padding:10px 8px;'>S.NO</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Date</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Week<br/>Code</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Month</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Project</th>
+            //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Section</th>
+            //                                <th style='width:80px; border:1px solid #c4cfd4; padding:10px 8px;'>Line</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Station Name</th>
+            //                                <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Problem Statement</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Frequency</th>
+            //                                <th style='width:110px; border:1px solid #c4cfd4; padding:10px 8px;'>Issue<br/>Severity</th>
+            //                                <th style='width:150px; border:1px solid #c4cfd4; padding:10px 8px;'>Category</th>
+            //                                <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Corrective Action</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Due Date</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>CM DRI</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Apple DRI</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Type of Audit</th>
+            //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Status</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Before Image</th>
+            //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>After Image</th>
+            //                            </tr>
+            //                        </thead>
 
-                                    <tbody>
-                                        <tr style='background:#ffffff; color:#1f2937;'>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>1</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.WeekCode}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Month}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.Project}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Section}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Line}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.StationName}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5;'>{savedRecord.ProblemStatement}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Frequency}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Category}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5; font-weight:600;'>{(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.CmDri}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.AppleDri}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.TypeOfAudit}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:700; color:#b45309;'>{savedRecord.Status}</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>BEFORE_IMAGE_PLACEHOLDER</td>
-                                            <td style='border:1px solid #e5e7eb; padding:10px 8px;'>AFTER_IMAGE_PLACEHOLDER</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+            //                        <tbody>
+            //                            <tr style='background:#ffffff; color:#1f2937;'>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>1</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.WeekCode}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Month}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.Project}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Section}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Line}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.StationName}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5;'>{savedRecord.ProblemStatement}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Frequency}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Category}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5; font-weight:600;'>{(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.CmDri}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.AppleDri}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.TypeOfAudit}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:700; color:#b45309;'>{savedRecord.Status}</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>BEFORE_IMAGE_PLACEHOLDER</td>
+            //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>AFTER_IMAGE_PLACEHOLDER</td>
+            //                            </tr>
+            //                        </tbody>
+            //                    </table>
+            //                </div>
 
-                        </div>
-                    </div>
+            //            </div>
+            //        </div>
 
-                </body>
-                </html>";
+            //    </body>
+            //    </html>";
 
-            string? beforeImageFullPath = null;
-            string? afterImageFullPath = null;
+            //string? beforeImageFullPath = null;
+            //string? afterImageFullPath = null;
 
-            if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
-            {
-                beforeImageFullPath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.BeforeImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
+            //if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
+            //{
+            //    beforeImageFullPath = Path.Combine(
+            //        _env.WebRootPath,
+            //        savedRecord.BeforeImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+            //    );
+            //}
 
-            if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
-            {
-                afterImageFullPath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.AfterImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
-            //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
-            // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
-            // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
-            _emailQueue.QueueEmail(async cancellationToken =>
-            {
-                await _emailService.SendEmailWithInlineImagesAsync(
-                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
-                    subject,
-                    body,
-                    beforeImageFullPath,
-                    afterImageFullPath
-                );
-            });
+            //if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
+            //{
+            //    afterImageFullPath = Path.Combine(
+            //        _env.WebRootPath,
+            //        savedRecord.AfterImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+            //    );
+            //}
+            ////Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
+            //// Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
+            //// Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
+            //_emailQueue.QueueEmail(async cancellationToken =>
+            //{
+            //    await _emailService.SendEmailWithInlineImagesAsync(
+            //        "Sharath_G@foxlink.com",
+            //        subject,
+            //        body,
+            //        beforeImageFullPath,
+            //        afterImageFullPath
+            //    );
+            //});
 
             TempData["SuccessMessage"] = "RCCA updated successfully.";
             return RedirectToAction(nameof(ChecklistRecords));
@@ -383,13 +582,11 @@ namespace E_MIL_Tracking_system.Controllers
                 return RedirectToAction(nameof(ChecklistRecords));
             }
 
-
-            string baseUrl = "http://10.52.16.17:5222";
+            //string baseUrl = "http://10.52.16.17:5222";
 
             await _service.UploadAfterImageAsync(id, afterImage, _env.WebRootPath);
             await _service.UpdateStatusAsync(id, "Ongoing");
             var savedRecord = await _service.GetByIdAsync(id);
-
 
             if (savedRecord == null)
             {
@@ -401,172 +598,172 @@ namespace E_MIL_Tracking_system.Controllers
             // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
             var recipients = new List<string>
             {
-                "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com"
+                "Sharath_G@foxlink.com"
             };
 
             await _service.ResetApprovalsAsync(id, recipients);
 
-            string subject = $"MIL Audit Review Required - {DateTime.Now:dd-MM-yyyy}";
+            //string subject = $"MIL Audit Review Required - {DateTime.Now:dd-MM-yyyy}";
 
-            string? beforeImagePath = null;
-            string? afterImagePath = null;
+            //string? beforeImagePath = null;
+            //string? afterImagePath = null;
 
-            if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
-            {
-                beforeImagePath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.BeforeImagePath.TrimStart('/')
-                        .Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
+            //if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
+            //{
+            //    beforeImagePath = Path.Combine(
+            //        _env.WebRootPath,
+            //        savedRecord.BeforeImagePath.TrimStart('/')
+            //            .Replace("/", Path.DirectorySeparatorChar.ToString())
+            //    );
+            //}
 
-            if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
-            {
-                afterImagePath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.AfterImagePath.TrimStart('/')
-                        .Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
+            //if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
+            //{
+            //    afterImagePath = Path.Combine(
+            //        _env.WebRootPath,
+            //        savedRecord.AfterImagePath.TrimStart('/')
+            //            .Replace("/", Path.DirectorySeparatorChar.ToString())
+            //    );
+            //}
 
-            foreach (var recipient in recipients)
-            {
-                string encodedEmail = Uri.EscapeDataString(recipient);
+            //foreach (var recipient in recipients)
+            //{
+            //    string encodedEmail = Uri.EscapeDataString(recipient);
 
-                string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={id}&email={encodedEmail}";
-                string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={id}&email={encodedEmail}";
+            //    string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={id}&email={encodedEmail}";
+            //    string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={id}&email={encodedEmail}";
 
-                string body = $@"
-                <html>
-                <body style='font-family:Arial; background:#f7f7f7; padding:20px;'>
+            //    string body = $@"
+            //    <html>
+            //    <body style='font-family:Arial; background:#f7f7f7; padding:20px;'>
 
-                    <h2>MIL Audit Review</h2>
+            //        <h2>MIL Audit Review</h2>
 
-                    <p>Hi Team,</p>
+            //        <p>Hi Team,</p>
 
-                    <p>
-                        After Image has been uploaded successfully for the below audit point.
-                        Please review and take action.
-                    </p>
+            //        <p>
+            //            After Image has been uploaded successfully for the below audit point.
+            //            Please review and take action.
+            //        </p>
 
-                    <div style='overflow-x:auto; width:100%;'>
+            //        <div style='overflow-x:auto; width:100%;'>
 
-                        <table cellpadding='0' cellspacing='0'
-                               style='border-collapse:collapse;
-                                      width:100%;
-                                      min-width:1500px;
-                                      table-layout:fixed;
-                                      font-size:12px;
-                                      text-align:center;
-                                      border:1px solid #d1d5db;'>
+            //            <table cellpadding='0' cellspacing='0'
+            //                   style='border-collapse:collapse;
+            //                          width:100%;
+            //                          min-width:1500px;
+            //                          table-layout:fixed;
+            //                          font-size:12px;
+            //                          text-align:center;
+            //                          border:1px solid #d1d5db;'>
 
-                            <thead>
-                                <tr style='background:#d7e5e1; color:#111827;'>
+            //                <thead>
+            //                    <tr style='background:#d7e5e1; color:#111827;'>
 
-                                    <th style='width:60px; border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
-                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Date</th>
-                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Week Code</th>
-                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Month</th>
-                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Project</th>
-                                    <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Section</th>
-                                    <th style='width:80px; border:1px solid #c4cfd4; padding:10px;'>Line</th>
-                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
-                                    <th style='width:220px; border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
-                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
-                                    <th style='width:110px; border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
-                                    <th style='width:150px; border:1px solid #c4cfd4; padding:10px;'>Category</th>
-                                    <th style='width:220px; border:1px solid #c4cfd4; padding:10px;'>Corrective Action</th>
-                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
-                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
-                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
-                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
-                                    <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Status</th>
-                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
-                                    <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>After Image</th>
+            //                        <th style='width:60px; border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
+            //                        <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Date</th>
+            //                        <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Week Code</th>
+            //                        <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Month</th>
+            //                        <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Project</th>
+            //                        <th style='width:90px; border:1px solid #c4cfd4; padding:10px;'>Section</th>
+            //                        <th style='width:80px; border:1px solid #c4cfd4; padding:10px;'>Line</th>
+            //                        <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
+            //                        <th style='width:220px; border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
+            //                        <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
+            //                        <th style='width:110px; border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
+            //                        <th style='width:150px; border:1px solid #c4cfd4; padding:10px;'>Category</th>
+            //                        <th style='width:220px; border:1px solid #c4cfd4; padding:10px;'>Corrective Action</th>
+            //                        <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
+            //                        <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
+            //                        <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
+            //                        <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
+            //                        <th style='width:100px; border:1px solid #c4cfd4; padding:10px;'>Status</th>
+            //                        <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
+            //                        <th style='width:120px; border:1px solid #c4cfd4; padding:10px;'>After Image</th>
 
-                                </tr>
-                            </thead>
+            //                    </tr>
+            //                </thead>
 
-                            <tbody>
-                                <tr style='background:#ffffff;'>
+            //                <tbody>
+            //                    <tr style='background:#ffffff;'>
 
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>1</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.WeekCode}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Month}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px; font-weight:600;'>{savedRecord.Project}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Section}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Line}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.StationName}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>1</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.WeekCode}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Month}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px; font-weight:600;'>{savedRecord.Project}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Section}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Line}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.StationName}</td>
 
-                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:left;'>
-                                        {savedRecord.ProblemStatement}
-                                    </td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px; text-align:left;'>
+            //                            {savedRecord.ProblemStatement}
+            //                        </td>
 
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Frequency}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Category}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Frequency}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Category}</td>
 
-                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:left;'>
-                                        {(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}
-                                    </td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px; text-align:left;'>
+            //                            {(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}
+            //                        </td>
 
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.CmDri}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.AppleDri}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.TypeOfAudit}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.CmDri}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.AppleDri}</td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.TypeOfAudit}</td>
 
-                                    <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>
-                                        Ongoing
-                                    </td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>
+            //                            Ongoing
+            //                        </td>
 
-                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:center; vertical-align:middle;'>
-                                        BEFORE_IMAGE_PLACEHOLDER
-                                    </td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:center; vertical-align:middle;'>
-                                        AFTER_IMAGE_PLACEHOLDER
-                                    </td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px; text-align:center; vertical-align:middle;'>
+            //                            BEFORE_IMAGE_PLACEHOLDER
+            //                        </td>
+            //                        <td style='border:1px solid #e5e7eb; padding:10px; text-align:center; vertical-align:middle;'>
+            //                            AFTER_IMAGE_PLACEHOLDER
+            //                        </td>
 
-                                </tr>
-                            </tbody>
+            //                    </tr>
+            //                </tbody>
 
-                        </table>
+            //            </table>
 
-                    </div>
+            //        </div>
 
-                    <br />
+            //        <br />
 
-                    <table role='presentation' style='margin-top:20px;'>
-                        <tr>
-                            <td bgcolor='#22c55e' style='border-radius:6px;'>
-                                <a href='{approveUrl}' style='color:#fff; padding:15px; text-decoration:none; font-weight:bold;'>ACCEPT</a>
-                            </td>
+            //        <table role='presentation' style='margin-top:20px;'>
+            //            <tr>
+            //                <td bgcolor='#22c55e' style='border-radius:6px;'>
+            //                    <a href='{approveUrl}' style='color:#fff; padding:15px; text-decoration:none; font-weight:bold;'>ACCEPT</a>
+            //                </td>
 
-                            <td style='width:15px;'></td>
+            //                <td style='width:15px;'></td>
 
-                            <td bgcolor='#ef4444' style='border-radius:6px;'>
-                                <a href='{rejectUrl}' style='color:#fff; padding:15px; text-decoration:none; font-weight:bold;'>REJECT</a>
-                            </td>
-                        </tr>
-                    </table>
+            //                <td bgcolor='#ef4444' style='border-radius:6px;'>
+            //                    <a href='{rejectUrl}' style='color:#fff; padding:15px; text-decoration:none; font-weight:bold;'>REJECT</a>
+            //                </td>
+            //            </tr>
+            //        </table>
 
-                </body>
-                </html>";
+            //    </body>
+            //    </html>";
 
-                _emailQueue.QueueEmail(async cancellationToken =>
-                {
-                    await _emailService.SendEmailWithInlineImagesAsync(
-                        recipient,
-                        subject,
-                        body,
-                        beforeImagePath,
-                        afterImagePath
-                    );
-                });
-            }
+            //    _emailQueue.QueueEmail(async cancellationToken =>
+            //    {
+            //        await _emailService.SendEmailWithInlineImagesAsync(
+            //            recipient,
+            //            subject,
+            //            body,
+            //            beforeImagePath,
+            //            afterImagePath
+            //        );
+            //    });
+            //}
 
             TempData["SuccessMessage"] =
-                "After Image uploaded successfully and approval mail sent.";
+                "After Image uploaded successfully";
 
             return RedirectToAction(nameof(ChecklistRecords));
         }
@@ -663,9 +860,13 @@ namespace E_MIL_Tracking_system.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveAuditHour(string AuditDateText, decimal AuditHour)
+        public async Task<IActionResult> SaveAuditHour(
+        string AuditDateText,
+        decimal AuditHour,
+        string? ReturnUrl)
         {
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (SqlConnection con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
             {
                 string query = @"INSERT INTO AuditHours (AuditDate, AuditHour)
                          VALUES (@AuditDate, @AuditHour)";
@@ -681,8 +882,197 @@ namespace E_MIL_Tracking_system.Controllers
             }
 
             TempData["SuccessMessage"] = "Audit hour saved successfully.";
-            return RedirectToAction(nameof(AuditHours));
+
+            if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                return Redirect(ReturnUrl);
+            }
+
+            return RedirectToAction("Index", "Dashboard");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendTodayChecklistMail()
+        {
+            var records = await _service.GetAllAsync();
+
+            var todayRecords = records
+                .Where(x => x.Date.HasValue && x.Date.Value.Date == DateTime.Today)
+                .OrderByDescending(x => x.Date)
+                .ToList();
+
+            if (!todayRecords.Any())
+            {
+                TempData["ErrorMessage"] = "No records found for today";
+                return RedirectToAction(nameof(Checklist));
+            }
+
+            var inlineImages = new List<InlineEmailImage>();
+            string rows = "";
+            int serialNo = 1;
+
+            foreach (var item in todayRecords)
+            {
+                string beforeImageHtml = "-";
+
+                string problemStatement = string.IsNullOrWhiteSpace(item.ProblemStatement)
+                ? "-"
+                : string.Join("<br/>",
+                    Enumerable.Range(0, (int)Math.Ceiling(item.ProblemStatement.Length / 50.0))
+                    .Select(i => item.ProblemStatement.Substring(
+                        i * 50,
+                        Math.Min(50, item.ProblemStatement.Length - (i * 50))
+                    )));
+
+
+                if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
+                {
+                    var imagePaths = item.BeforeImagePath
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .ToList();
+
+                    beforeImageHtml = "";
+
+                    foreach (var imagePath in imagePaths)
+                    {
+                        string fullPath = Path.Combine(
+                            _env.WebRootPath,
+                            imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+                        );
+
+                        if (System.IO.File.Exists(fullPath))
+                        {
+                            string contentId = "before_" + Guid.NewGuid().ToString("N");
+
+                            inlineImages.Add(new InlineEmailImage
+                            {
+                                ContentId = contentId,
+                                FilePath = fullPath
+                            });
+
+                            beforeImageHtml += $@"
+                                <div style='display:inline-block; margin:4px;'>
+                                    <img src='cid:{contentId}'
+                                         width='80'
+                                         height='60'
+                                         style='display:block;
+                                                object-fit:cover;
+                                                border-radius:6px;
+                                                border:1px solid #d1d5db;' />
+                                </div>";
+                            }
+                        }
+
+                        if (string.IsNullOrWhiteSpace(beforeImageHtml))
+                        {
+                            beforeImageHtml = "-";
+                        }
+                    }
+
+                    rows += $@"
+            <tr>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{serialNo}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.Section}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.StationName}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.IssueType}</td>
+            <td style='border:1px solid #e5e7eb;
+                       padding:10px;
+                       text-align:left;
+                       max-width:260px;
+                       word-wrap:break-word;
+                       white-space:normal;
+                       line-height:1.6;'>
+                {problemStatement}
+            </td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.Frequency}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.IssueSeverity}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.Category}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.Date?.ToString("dd-MM-yyyy")}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.DueDate?.ToString("dd-MM-yyyy")}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.CmDri}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.RespectiveDepartment}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.AppleDri}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.TypeOfAudit}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px;'>{item.Auditor}</td>
+            <td style='border:1px solid #e5e7eb; padding:10px; text-align:center; vertical-align:middle; white-space:normal;'>
+                {beforeImageHtml}
+            </td>
+            <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>{item.Status}</td>
+        </tr>";
+
+                serialNo++;
+            }
+
+            string subject = $"MIL Audit Report - {DateTime.Today:dd-MM-yyyy}";
+
+            string body = $@"
+    <html>
+    <body style='font-family:Arial, sans-serif; background:#f4f6f8; padding:20px;'>
+        <div style='background:#ffffff; padding:20px; border-radius:12px;'>
+            <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
+                MIL Audit Report
+            </h2>
+
+            <p style='margin:0 0 10px; font-size:14px;'>
+                Hi Team,
+            </p>
+
+            <p style='margin:0 0 10px; font-size:14px;'>
+                Good day.
+            </p>
+
+            <p style='margin:0 0 10px; font-size:14px; line-height:1.6;'>
+                I have attached the MIL audit points for your review.
+            </p>
+
+            <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
+                Please take necessary actions to address the identified issues and provide an update on the CP date,
+                root cause analysis and corrective actions for the mentioned points.
+            </p>
+
+            <table cellpadding='0' cellspacing='0'
+                   style='border-collapse:collapse; width:100%; min-width:1600px; font-size:12px; text-align:center;'>
+                <thead>
+                    <tr style='background:#d7e5e1; color:#111827;'>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Section</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Type</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Category</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Starting Date</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Respective Department</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Auditor</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
+                        <th style='border:1px solid #c4cfd4; padding:10px;'>Status</th>
+                    </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+            </table>
+        </div>
+    </body>
+    </html>";
+
+            _emailQueue.QueueEmail(async cancellationToken =>
+            {
+                await _emailService.SendEmailWithMultipleInlineImagesAsync(
+                    "Sharath_G@foxlink.com",
+                    subject,
+                    body,
+                    inlineImages
+                );
+            });
+
+            TempData["SuccessMessage"] = "Today records sent successfully";
+            return RedirectToAction(nameof(Checklist));
+        }
     }
 }

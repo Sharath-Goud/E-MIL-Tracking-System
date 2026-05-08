@@ -1,4 +1,6 @@
-﻿namespace E_MIL_Tracking_system.Services
+﻿using E_MIL_Tracking_system.DTOs;
+
+namespace E_MIL_Tracking_system.Services
 {
     public interface IEmailService
     {
@@ -10,6 +12,13 @@
             string htmlBody,
             string? beforeImageFullPath,
             string? afterImageFullPath
+        );
+
+        Task SendEmailWithMultipleInlineImagesAsync(
+            string toEmail,
+            string subject,
+            string htmlBody,
+            List<InlineEmailImage> inlineImages
         );
     }
 }
