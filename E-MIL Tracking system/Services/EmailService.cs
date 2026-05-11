@@ -68,8 +68,7 @@ namespace E_MIL_Tracking_system.Services
             string toEmail,
             string subject,
             string htmlBody,
-            string? beforeImageFullPath,
-            string? afterImageFullPath)
+            string? beforeImageFullPath)
         {
             var email = new MimeMessage();
 
@@ -101,21 +100,6 @@ namespace E_MIL_Tracking_system.Services
                 htmlBody = htmlBody.Replace("BEFORE_IMAGE_PLACEHOLDER", "-");
             }
 
-            if (!string.IsNullOrWhiteSpace(afterImageFullPath) && File.Exists(afterImageFullPath))
-            {
-                var afterImage = builder.LinkedResources.Add(afterImageFullPath);
-                afterImage.ContentId = "afterImageCid";
-
-                htmlBody = htmlBody.Replace(
-                    "AFTER_IMAGE_PLACEHOLDER",
-                    "<a href='cid:afterImageCid' target='_blank'><img src='cid:afterImageCid' style='width:90px;height:90px;object-fit:cover;border-radius:6px;display:block;margin:auto;border:1px solid #d1d5db;' /></a>"
-                );
-            }
-            else
-            {
-                htmlBody = htmlBody.Replace("AFTER_IMAGE_PLACEHOLDER", "-");
-            }
-
             builder.HtmlBody = htmlBody;
             email.Body = builder.ToMessageBody();
             using var smtp = new SmtpClient();
@@ -145,11 +129,64 @@ namespace E_MIL_Tracking_system.Services
             }
         }
 
+        public async Task SendEmailWithInlineImagesAsync1(
+            string toEmail,
+            string subject,
+            string htmlBody,
+            string? beforeImageFullPath,
+            string? afterImageFullPath)
+        {
+            var inlineImages = new List<InlineEmailImage>();
+
+            if (!string.IsNullOrWhiteSpace(beforeImageFullPath) && System.IO.File.Exists(beforeImageFullPath))
+            {
+                inlineImages.Add(new InlineEmailImage
+                {
+                    ContentId = "beforeImage",
+                    FilePath = beforeImageFullPath
+                });
+
+                htmlBody = htmlBody.Replace(
+                    "BEFORE_IMAGE_PLACEHOLDER",
+                    "<img src='cid:beforeImage' width='80' height='60' style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />"
+                );
+            }
+            else
+            {
+                htmlBody = htmlBody.Replace("BEFORE_IMAGE_PLACEHOLDER", "-");
+            }
+
+            if (!string.IsNullOrWhiteSpace(afterImageFullPath) && System.IO.File.Exists(afterImageFullPath))
+            {
+                inlineImages.Add(new InlineEmailImage
+                {
+                    ContentId = "afterImage",
+                    FilePath = afterImageFullPath
+                });
+
+                htmlBody = htmlBody.Replace(
+                    "AFTER_IMAGE_PLACEHOLDER",
+                    "<img src='cid:afterImage' width='80' height='60' style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />"
+                );
+            }
+            else
+            {
+                htmlBody = htmlBody.Replace("AFTER_IMAGE_PLACEHOLDER", "-");
+            }
+
+            await SendEmailWithMultipleInlineImagesAsync(
+                toEmail,
+                subject,
+                htmlBody,
+                inlineImages
+            );
+        }
+
         public async Task SendEmailWithMultipleInlineImagesAsync(
-    string toEmail,
-    string subject,
-    string htmlBody,
-    List<InlineEmailImage> inlineImages)
+        string toEmail,
+        string subject,
+        string htmlBody,
+        List<InlineEmailImage> inlineImages)
         {
             var message = new MimeMessage();
 
@@ -172,7 +209,7 @@ namespace E_MIL_Tracking_system.Services
 
             foreach (var img in inlineImages)
             {
-                if (File.Exists(img.FilePath))
+                if (!string.IsNullOrWhiteSpace(img.FilePath) && File.Exists(img.FilePath))
                 {
                     var image = builder.LinkedResources.Add(img.FilePath);
                     image.ContentId = img.ContentId;
@@ -184,22 +221,36 @@ namespace E_MIL_Tracking_system.Services
 
             using var client = new MailKit.Net.Smtp.SmtpClient();
 
-            await client.ConnectAsync(
-                _smtpSettings.Host,
-                _smtpSettings.Port,
-                MailKit.Security.SecureSocketOptions.None
-            );
-
-            if (!string.IsNullOrWhiteSpace(_smtpSettings.Username))
+            try
             {
-                await client.AuthenticateAsync(
-                    _smtpSettings.Username,
-                    _smtpSettings.Password
-                );
-            }
+                client.Timeout = 60000;
 
-            await client.SendAsync(message);
-            await client.DisconnectAsync(true);
+                await client.ConnectAsync(
+                    _smtpSettings.Host,
+                    _smtpSettings.Port,
+                    SecureSocketOptions.None
+                );
+
+                if (!string.IsNullOrWhiteSpace(_smtpSettings.Username))
+                {
+                    await client.AuthenticateAsync(
+                        _smtpSettings.Username,
+                        _smtpSettings.Password
+                    );
+                }
+
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+            }
+            catch
+            {
+                if (client.IsConnected)
+                {
+                    await client.DisconnectAsync(false);
+                }
+
+                throw;
+            }
         }
     }
 }

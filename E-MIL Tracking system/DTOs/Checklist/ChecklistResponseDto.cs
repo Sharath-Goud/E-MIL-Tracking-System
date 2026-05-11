@@ -26,5 +26,7 @@
         public string? AfterImagePath { get; set; }
         public string? Status { get; set; }
         public bool DueReminderSent { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public bool IsRccaMailSent { get; set; }
     }
 }

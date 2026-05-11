@@ -45,10 +45,18 @@
             </select>
 
             <select name="week" class="filter-dropdown">
-                <option value="1" selected="@(ViewBag.SelectedWeek == 1)">Week - 1</option>
-                <option value="2" selected="@(ViewBag.SelectedWeek == 2)">Week - 2</option>
-                <option value="3" selected="@(ViewBag.SelectedWeek == 3)">Week - 3</option>
-                <option value="4" selected="@(ViewBag.SelectedWeek == 4)">Week - 4</option>
+                @{
+                    int totalWeeks = ViewBag.TotalWeeks != null
+                    ? Convert.ToInt32(ViewBag.TotalWeeks)
+                    : 4;
+                }
+
+                @for (int w = 1; w <= totalWeeks; w++)
+                {
+                    <option value="@w" selected="@(ViewBag.SelectedWeek == w)">
+                        Week - @w
+                    </option>
+                }
             </select>
 
             <button type="submit" class="filter-btn">Apply Filter</button>
@@ -117,6 +125,17 @@
                 : DateTime.Now.Year;
 
                 var selectedWeekIndex = Convert.ToInt32(ViewBag.SelectedWeek) - 1;
+
+                if (selectedWeekIndex < 0)
+                {
+                    selectedWeekIndex = 0;
+                }
+
+                if (selectedWeekIndex >= ViewBag.AuditTableRows.Count)
+                {
+                    selectedWeekIndex = ViewBag.AuditTableRows.Count - 1;
+                }
+
                 var row = ViewBag.AuditTableRows[selectedWeekIndex];
             }
 
@@ -1235,7 +1254,10 @@
     .audit-hour-form {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
+        width: 100%;
+        padding-left: 12px;
     }
 
     .audit-input {
@@ -1250,7 +1272,7 @@
         background: linear-gradient(to bottom, #eef1fb, #c8cef1);
         box-sizing: border-box;
         transition: all 0.25s ease;
-        text-align: left;
+        text-align: center !important;
         flex: 1;
     }
 
@@ -1302,9 +1324,9 @@
         box-shadow: none !important;
         color: #ffffff !important;
         font-weight: 600;
-        text-align: center;
+        text-align: center !important;
         pointer-events: none;
-        padding-left: 0;
+        padding-left: 0 !important;
     }
 
         .saved-input:hover,

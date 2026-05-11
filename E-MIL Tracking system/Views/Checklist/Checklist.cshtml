@@ -679,20 +679,31 @@
             });
 
             updateMultipleImagePreview();
-            e.target.value = "";
         });
     }
 
-    function updateMultipleImagePreview() {
+        function updateMultipleImagePreview() {
         const previewBox = document.getElementById("beforePreviewBox");
         const text = document.getElementById("beforeFileText");
         const fileInput = document.getElementById("beforeImage");
 
         previewBox.innerHTML = "";
 
+        const dataTransfer = new DataTransfer();
+
+        beforeSelectedFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+
+        fileInput.files = dataTransfer.files;
+
         if (beforeSelectedFiles.length === 0) {
             text.style.display = "inline";
             previewBox.appendChild(text);
+
+            fileInput.value = "";
+            document.getElementById("status").value = "";
+
             updateStatusAutomatically();
             return;
         }
@@ -705,7 +716,6 @@
 
             wrapper.innerHTML = `
                 <img src="${imageUrl}" onclick="openImageModal('${imageUrl}')" />
-
                 <button type="button"
                         class="inside-preview-remove"
                         onclick="removeMultipleImage(${index})">
@@ -715,14 +725,6 @@
 
             previewBox.appendChild(wrapper);
         });
-
-        const dataTransfer = new DataTransfer();
-
-        beforeSelectedFiles.forEach(file => {
-            dataTransfer.items.add(file);
-        });
-
-        fileInput.files = dataTransfer.files;
 
         updateStatusAutomatically();
     }
@@ -756,30 +758,6 @@
         }, "image/jpeg");
     }
 
-    //     function captureImage(type) {
-    //     const video = document.getElementById(type + "Video");
-    //     const canvas = document.getElementById(type + "Canvas");
-    //     const fileInput = document.getElementById(type + "Image");
-
-    //     const context = canvas.getContext("2d");
-    //     canvas.width = video.videoWidth;
-    //     canvas.height = video.videoHeight;
-    //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    //     canvas.toBlob(function (blob) {
-    //         const file = new File([blob], type + "-capture.jpg", { type: "image/jpeg" });
-
-    //         const dataTransfer = new DataTransfer();
-    //         dataTransfer.items.add(file);
-    //         fileInput.files = dataTransfer.files;
-
-    //         updateInlineImagePreview(type, file);
-    //         updateStatusAutomatically();
-
-    //         closeCamera(type);
-    //     }, "image/jpeg");
-    // }
-
     function closeCamera(type) {
         const cameraBox = document.getElementById(type + "CameraBox");
         const video = document.getElementById(type + "Video");
@@ -792,51 +770,6 @@
         video.srcObject = null;
         cameraBox.style.display = "none";
     }
-
-    // function updateInlineImagePreview(type, file) {
-    //     const preview = document.getElementById(type + "PreviewInline");
-    //     const text = document.getElementById(type + "FileText");
-    //     const removeBtn = document.getElementById(type + "RemoveBtn");
-
-    //     if (file) {
-    //         preview.src = URL.createObjectURL(file);
-    //         preview.style.display = "block";
-    //         text.style.display = "none";
-    //         removeBtn.style.display = "flex";
-    //     } else {
-    //         preview.src = "";
-    //         preview.style.display = "none";
-    //         text.textContent = "No image uploaded";
-    //         text.style.display = "inline";
-    //         removeBtn.style.display = "none";
-    //     }
-
-    //     updateStatusAutomatically();
-    // }
-
-    // function removeSelectedImage(type) {
-    //     const fileInput = document.getElementById(type + "Image");
-    //     const preview = document.getElementById(type + "PreviewInline");
-    //     const text = document.getElementById(type + "FileText");
-    //     const removeBtn = document.getElementById(type + "RemoveBtn");
-
-    //     fileInput.value = "";
-    //     preview.src = "";
-    //     preview.style.display = "none";
-    //     text.textContent = "No image uploaded";
-    //     text.style.display = "inline";
-    //     removeBtn.style.display = "none";
-
-    //     updateStatusAutomatically();
-    // }
-
-    // const beforeImageInput = document.getElementById("beforeImage");
-    // if (beforeImageInput) {
-    //     beforeImageInput.addEventListener("change", function (e) {
-    //         const file = e.target.files[0];
-    //         updateInlineImagePreview("before", file);
-    //     });
-    // }
 
     const dateInput = document.getElementById("date");
     const weekCodeInput = document.getElementById("weekCode");
@@ -909,7 +842,7 @@
         };
     }
 
-        function updateStatusAutomatically() {
+            function updateStatusAutomatically() {
         const fields = [
             "date",
             "weekCode",
@@ -928,7 +861,7 @@
             "respectiveDepartment",
             "appleDri",
             "typeOfAudit",
-            "auditor",
+            "auditor"
         ];
 
         let allFilled = true;
@@ -941,20 +874,14 @@
             }
         });
 
-        const beforeImage = document.getElementById("beforeImage");
-
-        if (!beforeImage || beforeImage.files.length === 0) {
-            allFilled = false;
-        }
-
-        const statusField = document.getElementById("status");
+        const hasBeforeImage = beforeSelectedFiles.length > 0;
 
         if (statusField) {
-            statusField.value = allFilled ? "Ongoing" : "";
+            statusField.value = allFilled && hasBeforeImage ? "Ongoing" : "";
         }
     }
 
-        const issueTypeInput = document.getElementById("issueType");
+    const issueTypeInput = document.getElementById("issueType");
     const frequencyInput = document.getElementById("frequency");
 
     function handleFrequencyByIssueType() {
@@ -1052,6 +979,7 @@
                 document.getElementById("appleDri"),
                 document.getElementById("typeOfAudit"),
                 document.getElementById("beforeImage"),
+                document.getElementById("auditor"),
                 document.getElementById("status")
             ];
 
@@ -1061,7 +989,7 @@
                 if (!field) return;
 
                 if (field.type === "file") {
-                    if (field.files.length === 0) {
+                    if (beforeSelectedFiles.length === 0) {
                         isValid = false;
                     }
                 } else {

@@ -38,8 +38,25 @@ namespace E_MIL_Tracking_system.Controllers
 
             int selectedMonth = month ?? DateTime.Now.Month;
             int selectedYear = year ?? DateTime.Now.Year;
-            int selectedWeekFilter = week ?? 1;
+            int selectedWeekFilter;
 
+            if (week.HasValue)
+            {
+                selectedWeekFilter = week.Value;
+            }
+            else
+            {
+                int todayDay = DateTime.Today.Day;
+
+                if (todayDay <= 7)
+                    selectedWeekFilter = 1;
+                else if (todayDay <= 14)
+                    selectedWeekFilter = 2;
+                else if (todayDay <= 21)
+                    selectedWeekFilter = 3;
+                else
+                    selectedWeekFilter = 4;
+            }
             if (selectedWeekFilter < 1 || selectedWeekFilter > 4)
             {
                 selectedWeekFilter = 1;
@@ -145,26 +162,48 @@ namespace E_MIL_Tracking_system.Controllers
             })
             .ToList();
 
-            int daysToMonday =
-                ((int)DayOfWeek.Monday - (int)firstDayOfMonth.DayOfWeek + 7) % 7;
+            var weekStarts = new List<DateTime>();
 
-            var firstMonday = firstDayOfMonth.AddDays(daysToMonday);
+            var firstWeekStart = firstDayOfMonth.AddDays(
+                -(((int)firstDayOfMonth.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7)
+            );
 
-            var weekNumbers = Enumerable.Range(0, 4)
-                .Select(i =>
-                {
-                    var weekStart = firstMonday.AddDays(i * 7);
+            for (var d = firstWeekStart; d <= lastDayOfMonth; d = d.AddDays(7))
+            {
+                weekStarts.Add(d.Date);
+            }
 
-                    if (weekStart > lastDayOfMonth)
-                    {
-                        return (int?)null;
-                    }
-
-                    return System.Globalization.ISOWeek.GetWeekOfYear(weekStart);
-                })
-                .Where(w => w.HasValue)
-                .Select(w => w!.Value)
+            var weekNumbers = weekStarts
+                .Select(x => System.Globalization.ISOWeek.GetWeekOfYear(x))
                 .ToList();
+
+            ViewBag.TotalWeeks = weekNumbers.Count;
+
+            if (selectedWeekFilter == 0)
+            {
+                if (selectedMonth == DateTime.Today.Month && selectedYear == DateTime.Today.Year)
+                {
+                    var todayWeekStart = DateTime.Today.AddDays(
+                        -(((int)DateTime.Today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7)
+                    );
+
+                    selectedWeekFilter = weekStarts.FindIndex(x => x.Date == todayWeekStart.Date) + 1;
+
+                    if (selectedWeekFilter <= 0)
+                        selectedWeekFilter = 1;
+                }
+                else
+                {
+                    selectedWeekFilter = 1;
+                }
+            }
+
+            if (selectedWeekFilter < 1 || selectedWeekFilter > weekNumbers.Count)
+            {
+                selectedWeekFilter = 1;
+            }
+
+            ViewBag.SelectedWeek = selectedWeekFilter;
 
             var weeklyData = weekNumbers.Select(weekNo => new
             {
@@ -231,69 +270,44 @@ namespace E_MIL_Tracking_system.Controllers
 
             ViewBag.WeeklyFindingPerHourSeries = new[]
             {
-        new
-        {
-            name = "Finding/Hour",
-            data = weeklyFindingPerHourData
-        }
-    };
+                new
+                {
+                    name = "Finding/Hour",
+                    data = weeklyFindingPerHourData
+                }
+            };
 
-            var weeklyRData = weekNumbers.Select(weekNo =>
+            var weeklyRData = weeklyFindingPerHourData
+            .Select((currentValue, index) =>
             {
-                var weekStart = System.Globalization.ISOWeek.ToDateTime(
-                    selectedYear,
-                    weekNo,
-                    DayOfWeek.Monday
-                );
-
-                var findingPerHourValues = new List<decimal>();
-
-                for (int i = 0; i <= 5; i++)
+                if (index == 0)
                 {
-                    var currentDate = weekStart.AddDays(i).Date;
-
-                    int dayFinding = records.Count(x =>
-                        x.Date.HasValue &&
-                        x.Date.Value.Date == currentDate);
-
-                    var savedAudit = auditHours.FirstOrDefault(x =>
-                        x.ParsedDate.HasValue &&
-                        x.ParsedDate.Value.Date == currentDate);
-
-                    if (savedAudit != null && savedAudit.AuditHour > 0)
-                    {
-                        decimal findingPerHour = dayFinding / savedAudit.AuditHour;
-                        decimal truncated = Math.Floor(findingPerHour * 10) / 10;
-
-                        if (truncated > 0)
-                        {
-                            findingPerHourValues.Add(truncated);
-                        }   
-                    }
+                    return 0m;
                 }
-
-                if (findingPerHourValues.Any())
+                if (currentValue <= 0)
                 {
-                    decimal maxValue = findingPerHourValues.Max();
-                    decimal minValue = findingPerHourValues.Min();
-
-                    decimal rValue = maxValue - minValue;
-                    return Math.Floor(rValue * 10) / 10;
+                    return 0m;
                 }
-
-                return 0;
-            }).ToList();
+                decimal previousValue = weeklyFindingPerHourData[index - 1];
+                if (previousValue <= 0)
+                {
+                    return 0m;
+                }
+                decimal rValue = Math.Abs(currentValue - previousValue);
+                return Math.Floor(rValue * 10) / 10;
+            })
+            .ToList();
 
             ViewBag.WeeklyRChartSeries = new[]
-            {
-        new
-        {
-            name = "R-Chart",
-            data = weeklyRData
-        }
-    };
+                    {
+                new
+                {
+                    name = "R-Chart",
+                    data = weeklyRData
+                }
+            };
 
-            var auditTableRows = weekNumbers.Select(weekNo =>
+            var auditTableRows = weekNumbers.Select((weekNo, weekIndex) =>
             {
                 var weekStart = System.Globalization.ISOWeek.ToDateTime(
                     selectedYear,
@@ -345,22 +359,19 @@ namespace E_MIL_Tracking_system.Controllers
 
                 var findingHr = new List<string> { "", "", "", "", "", findingPerHour };
 
-                var validValues = findingHr
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .Select(x =>
-                    {
-                        decimal.TryParse(x, out var value);
-                        return value;
-                    })
-                    .Where(x => x > 0)
-                    .ToList();
-
                 string rValue = "";
 
-                if (validValues.Any())
+                if (weekIndex > 0)
                 {
-                    decimal r = validValues.Max() - validValues.Min();
+                    decimal previousFindingPerHour = weeklyFindingPerHourData[weekIndex - 1];
+                    decimal currentFindingPerHour = weeklyFindingPerHourData[weekIndex];
+
+                    decimal r = Math.Abs(currentFindingPerHour - previousFindingPerHour);
                     rValue = (Math.Floor(r * 10) / 10).ToString("0.0");
+                }
+                else
+                {
+                    rValue = "0.0";
                 }
 
                 return new

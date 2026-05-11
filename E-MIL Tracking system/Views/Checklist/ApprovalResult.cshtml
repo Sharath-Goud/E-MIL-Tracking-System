@@ -1,65 +1,202 @@
 ﻿@{
     Layout = null;
-    var success = TempData["SuccessMessage"];
-    var error = TempData["ErrorMessage"];
+
+    bool isSuccess = ViewBag.IsSuccess != null && (bool)ViewBag.IsSuccess;
+    string message = ViewBag.Message ?? "";
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Approval Status</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Checklist Approval Status</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
     <style>
-        body {
+        * {
             margin: 0;
-            font-family: Arial;
-            background: #f5f7fb;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            background: linear-gradient(135deg, #0f172a, #1e293b, #111827);
+            font-family: "Segoe UI", Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .approval-container {
+            width: 100%;
+            max-width: 620px;
+        }
+
+        .approval-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 28px;
+            padding: 42px;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.45);
             text-align: center;
+            animation: fadeUp 0.6s ease;
         }
 
-        .result-card {
-            background: white;
-            padding: 50px;
+        @@keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(35px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            color: #fff;
+        }
+
+        .success-icon {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            box-shadow: 0 18px 40px rgba(34,197,94,0.35);
+        }
+
+        .reject-icon {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            box-shadow: 0 18px 40px rgba(239,68,68,0.35);
+        }
+
+        .status-title {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .status-subtitle {
+            color: #cbd5e1;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 28px;
+        }
+
+        .message-box {
             border-radius: 18px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-            width: 500px;
+            padding: 22px;
+            font-size: 15px;
+            line-height: 1.8;
+            font-weight: 500;
         }
 
-        h2 {
-            margin-bottom: 20px;
-            color: #111827;
+        .success-message {
+            background: rgba(34,197,94,0.10);
+            border: 1px solid rgba(34,197,94,0.25);
+            color: #dcfce7;
         }
 
-        .success {
-            color: #16a34a;
-            font-weight: 700;
-            font-size: 18px;
+        .reject-message {
+            background: rgba(239,68,68,0.10);
+            border: 1px solid rgba(239,68,68,0.25);
+            color: #fee2e2;
         }
 
-        .error {
-            color: #dc2626;
-            font-weight: 700;
-            font-size: 18px;
+        .footer-text {
+            margin-top: 26px;
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @@media (max-width: 640px) {
+
+            .approval-card {
+                padding: 30px 22px;
+            }
+
+            .status-title {
+                font-size: 26px;
+            }
+
+            .status-icon {
+                width: 84px;
+                height: 84px;
+                font-size: 34px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-    <div class="result-card">
-        <h2>Checklist Approval Response</h2>
+    <div class="approval-container">
 
-        @if (success != null)
-        {
-            <div class="success">@success</div>
-        }
+        <div class="approval-card">
 
-        @if (error != null)
-        {
-            <div class="error">@error</div>
-        }
+            @if (isSuccess)
+            {
+                <div class="status-icon success-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+                <h1 class="status-title">
+                    Verification Approved
+                </h1>
+
+                <div class="status-subtitle">
+                    The audit verification process has been completed successfully.
+                    The checklist actions were reviewed and validated.
+                </div>
+
+                <div class="message-box success-message">
+                    @message
+                </div>
+            }
+            else
+            {
+                <div class="status-icon reject-icon">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+
+                <h1 class="status-title">
+                    Verification Rejected
+                </h1>
+
+                <div class="status-subtitle">
+                    The audit verification process requires additional review
+                    and corrective action before closure.
+                </div>
+
+                <div class="message-box reject-message">
+                    @message
+                </div>
+            }
+
+            <div class="footer-text">
+                E-MIL Tracking System <br />
+                Audit Verification & Compliance Workflow
+            </div>
+
+        </div>
+
     </div>
 
 </body>

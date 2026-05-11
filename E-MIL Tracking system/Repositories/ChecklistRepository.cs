@@ -167,15 +167,19 @@ namespace E_MIL_Tracking_system.Repositories
             await connection.OpenAsync();
 
             var query = @"
-        UPDATE ChecklistRecords
-        SET Rcca = @Rcca
-        WHERE Id = @Id";
+                UPDATE ChecklistRecords
+                SET Rcca = @Rcca,
+                    RccaUpdatedAt = GETDATE()
+                WHERE Id = @Id";
 
             using var cmd = new SqlCommand(query, connection);
-
             cmd.Parameters.AddWithValue("@Id", id);
-            cmd.Parameters.AddWithValue("@Rcca", string.IsNullOrWhiteSpace(rcca) ? DBNull.Value : rcca);
-
+            cmd.Parameters.AddWithValue(
+                "@Rcca",
+                string.IsNullOrWhiteSpace(rcca)
+                    ? DBNull.Value
+                    : rcca
+            );
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -185,10 +189,10 @@ namespace E_MIL_Tracking_system.Repositories
             await connection.OpenAsync();
 
             var query = @"
-            UPDATE ChecklistRecords
-            SET AfterImagePath = @AfterImagePath,
-                Status = 'Closed'
-            WHERE Id = @Id";
+        UPDATE ChecklistRecords
+        SET AfterImagePath = @AfterImagePath,
+            Status = 'Ongoing'
+        WHERE Id = @Id";
 
             using var cmd = new SqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@Id", id);
@@ -291,75 +295,100 @@ namespace E_MIL_Tracking_system.Repositories
         public async Task InsertApprovalAsync(int checklistId, string email)
         {
             using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
             string query = @"
-        INSERT INTO ChecklistApprovalStatus (ChecklistId, Email, IsAccepted, IsRejected)
-        VALUES (@ChecklistId, @Email, 0, 0)";
+        INSERT INTO ChecklistApprovalStatus
+        (
+            ChecklistId,
+            Email,
+            IsAccepted,
+            IsRejected,
+            ActionDate
+        )
+        VALUES
+        (
+            @ChecklistId,
+            @Email,
+            0,
+            0,
+            NULL
+        )";
 
             using var cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
             cmd.Parameters.AddWithValue("@Email", email);
 
-            await con.OpenAsync();
             await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task MarkAcceptedAsync(int checklistId, string email)
         {
             using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
             string query = @"
-        UPDATE ChecklistApprovalStatus
-        SET IsAccepted = 1,
-            IsRejected = 0,
-            ActionDate = GETDATE()
-        WHERE ChecklistId = @ChecklistId AND Email = @Email";
+            UPDATE ChecklistApprovalStatus
+            SET IsAccepted = 1,
+                IsRejected = 0,
+                ActionDate = GETDATE()
+            WHERE ChecklistId = @ChecklistId
+              AND LOWER(LTRIM(RTRIM(Email))) = LOWER(LTRIM(RTRIM(@Email)))";
 
             using var cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
-            cmd.Parameters.AddWithValue("@Email", email);
+            cmd.Parameters.AddWithValue("@Email", email ?? "");
 
-            await con.OpenAsync();
-            await cmd.ExecuteNonQueryAsync();
+            int rows = await cmd.ExecuteNonQueryAsync();
+
+            if (rows == 0)
+            {
+                throw new Exception("Approval record not found for this email.");
+            }
         }
 
         public async Task MarkRejectedAsync(int checklistId, string email)
         {
             using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
             string query = @"
-        UPDATE ChecklistApprovalStatus
-        SET IsAccepted = 0,
-            IsRejected = 1,
-            ActionDate = GETDATE()
-        WHERE ChecklistId = @ChecklistId AND Email = @Email";
+            UPDATE ChecklistApprovalStatus
+            SET IsAccepted = 0,
+                IsRejected = 1,
+                ActionDate = GETDATE()
+            WHERE ChecklistId = @ChecklistId
+              AND LOWER(LTRIM(RTRIM(Email))) = LOWER(LTRIM(RTRIM(@Email)))";
 
             using var cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
-            cmd.Parameters.AddWithValue("@Email", email);
+            cmd.Parameters.AddWithValue("@Email", email ?? "");
 
-            await con.OpenAsync();
-            await cmd.ExecuteNonQueryAsync();
+            int rows = await cmd.ExecuteNonQueryAsync();
+
+            if (rows == 0)
+            {
+                throw new Exception("Approval record not found for this email.");
+            }
         }
 
         public async Task<bool> AreAllAcceptedAsync(int checklistId)
         {
             using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
             string query = @"
-        SELECT 
-            CASE 
-                WHEN COUNT(*) > 0 
-                     AND SUM(CASE WHEN IsAccepted = 1 THEN 1 ELSE 0 END) = COUNT(*)
-                THEN 1 
-                ELSE 0 
-            END
-        FROM ChecklistApprovalStatus
-        WHERE ChecklistId = @ChecklistId";
+                SELECT COUNT(*)
+                FROM ChecklistApprovalStatus
+                WHERE ChecklistId = @ChecklistId
+                  AND ISNULL(IsAccepted, 0) = 0";
 
             using var cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
 
-            await con.OpenAsync();
+            int notAcceptedCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
 
-            var result = await cmd.ExecuteScalarAsync();
-            return Convert.ToInt32(result) == 1;
+            return notAcceptedCount == 0;
         }
     }
 }

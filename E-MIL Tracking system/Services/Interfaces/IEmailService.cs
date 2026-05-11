@@ -10,9 +10,15 @@ namespace E_MIL_Tracking_system.Services
             string toEmail,
             string subject,
             string htmlBody,
-            string? beforeImageFullPath,
-            string? afterImageFullPath
+            string? beforeImageFullPath
         );
+
+        Task SendEmailWithInlineImagesAsync1(
+            string toEmail,
+            string subject,
+            string htmlBody,
+            string? beforeImageFullPath,
+            string? afterImageFullPath);
 
         Task SendEmailWithMultipleInlineImagesAsync(
             string toEmail,
