@@ -455,6 +455,51 @@ namespace E_MIL_Tracking_system.Controllers
                 return RedirectToAction(nameof(ChecklistRecords));
             }
 
+            var inlineImages = new List<InlineEmailImage>();
+            string beforeImageHtml = "-";
+
+            if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
+            {
+                var imagePaths = savedRecord.BeforeImagePath
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim())
+                    .ToList();
+
+                beforeImageHtml = "";
+
+                foreach (var imagePath in imagePaths)
+                {
+                    string fullPath = Path.Combine(
+                        _env.WebRootPath,
+                        imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+                    );
+
+                    if (System.IO.File.Exists(fullPath))
+                    {
+                        string contentId = "before_" + Guid.NewGuid().ToString("N");
+
+                        inlineImages.Add(new InlineEmailImage
+                        {
+                            ContentId = contentId,
+                            FilePath = fullPath
+                        });
+
+                        beforeImageHtml += $@"
+                <div style='display:inline-block; margin:4px;'>
+                    <img src='cid:{contentId}'
+                         width='80'
+                         height='60'
+                         style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />
+                </div>";
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(beforeImageHtml))
+                {
+                    beforeImageHtml = "-";
+                }
+            }
+
             string subject = $"MIL Audit RCCA Updated {DateTime.Now:dd-MM-yyyy}";
 
             string body = $@"
@@ -519,7 +564,7 @@ namespace E_MIL_Tracking_system.Controllers
                                 <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.CmDri}</td>
                                 <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.AppleDri}</td>
                                 <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.TypeOfAudit}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>BEFORE_IMAGE_PLACEHOLDER</td>
+                                <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
                                 <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>{savedRecord.Status}</td>
                             </tr>
                         </tbody>
@@ -529,26 +574,17 @@ namespace E_MIL_Tracking_system.Controllers
             </body>
             </html>";
 
-            string? beforeImageFullPath = null;
-
-            if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
-            {
-                beforeImageFullPath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.BeforeImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
 
             //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
             // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
             // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
             _emailQueue.QueueEmail(async cancellationToken =>
             {
-                await _emailService.SendEmailWithInlineImagesAsync(
+                await _emailService.SendEmailWithMultipleInlineImagesAsync(
                     "Sharath_G@foxlink.com",
                     subject,
                     body,
-                    beforeImageFullPath
+                    inlineImages
                 );
             });
 

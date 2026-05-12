@@ -124,19 +124,20 @@
                 ? Convert.ToInt32(ViewBag.SelectedYear)
                 : DateTime.Now.Year;
 
-                var selectedWeekIndex = Convert.ToInt32(ViewBag.SelectedWeek) - 1;
+                var selectedWeek = ViewBag.SelectedWeek != null
+                ? Convert.ToInt32(ViewBag.SelectedWeek)
+                : 1;
 
-                if (selectedWeekIndex < 0)
+                var auditRows = ViewBag.AuditTableRows
+                as List<E_MIL_Tracking_system.DTOs.AuditTableRowDto>;
+
+                var row = auditRows?
+                .FirstOrDefault(x => x.WeekNumber == selectedWeek);
+
+                if (row == null && auditRows != null && auditRows.Count > 0)
                 {
-                    selectedWeekIndex = 0;
+                    row = auditRows.First();
                 }
-
-                if (selectedWeekIndex >= ViewBag.AuditTableRows.Count)
-                {
-                    selectedWeekIndex = ViewBag.AuditTableRows.Count - 1;
-                }
-
-                var row = ViewBag.AuditTableRows[selectedWeekIndex];
             }
 
             <div class="audit-table-wrapper dashboard-audit-table-wrapper">

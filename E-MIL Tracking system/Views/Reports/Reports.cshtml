@@ -151,10 +151,15 @@
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
                                     {
-                                        <img src="@item.BeforeImagePath"
-                                             class="table-preview-img clickable-img"
-                                             alt="Before Image"
-                                             onclick="openImageModal(this.src)" />
+                                        <div class="before-images-grid">
+                                            @foreach (var img in item.BeforeImagePath.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                            {
+                                                <img src="@img.Trim()"
+                                                     class="table-preview-img clickable-img before-grid-img"
+                                                     alt="Before Image"
+                                                     onclick="openImageModal(this.src)" />
+                                            }
+                                        </div>
                                     }
                                     else
                                     {
@@ -915,6 +920,30 @@
 
     .reset-filter-btn:hover {
         background: #e5e7eb;
+    }
+
+    .before-images-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 42px);
+        gap: 5px;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+        .before-images-grid:has(img:only-child) {
+            grid-template-columns: 1fr;
+            justify-items: center;
+        }
+
+    .before-grid-img {
+        width: 42px !important;
+        height: 36px !important;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #94a3b8;
+        display: block;
+        margin: 0 !important;
     }
 
 </style>

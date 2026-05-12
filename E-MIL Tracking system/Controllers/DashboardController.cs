@@ -307,25 +307,41 @@ namespace E_MIL_Tracking_system.Controllers
                 }
             };
 
-            var auditTableRows = weekNumbers.Select((weekNo, weekIndex) =>
-            {
-                var weekStart = System.Globalization.ISOWeek.ToDateTime(
-                    selectedYear,
-                    weekNo,
-                    DayOfWeek.Monday
-                );
+            var auditTableRows = new List<E_MIL_Tracking_system.DTOs.AuditTableRowDto>();
 
-                var dates = new List<string> { $"WK-{weekNo:00}/{weekStart:dd-MMM}" };
-                dates.AddRange(Enumerable.Range(1, 5).Select(i => weekStart.AddDays(i).ToString("dd-MMM")));
+            var firstMonday = firstDayOfMonth;
+
+            while (firstMonday.DayOfWeek != DayOfWeek.Monday)
+            {
+                firstMonday = firstMonday.AddDays(1);
+            }
+
+            for (int weekIndex = 1; weekIndex <= ViewBag.TotalWeeks; weekIndex++)
+            {
+                var weekStart = firstMonday.AddDays((weekIndex - 1) * 7);
+
+                var weekDates = Enumerable.Range(0, 6)
+                    .Select(i => weekStart.AddDays(i).Date)
+                    .Where(d =>
+                        d.Month == selectedMonth &&
+                        d.Year == selectedYear)
+                    .ToList();
+
+                if (!weekDates.Any())
+                    continue;
+
+                var dates = weekDates
+                    .Select(d => d.ToString("dd-MMM"))
+                    .ToList();
+
+                dates[0] = $"WK-{weekIndex}/{dates[0]}";
 
                 var totalFindings = new List<string>();
                 var auditHourValues = new List<string>();
 
-                for (int i = 0; i <= 5; i++)
+                foreach (var currentDate in weekDates)
                 {
-                    var currentDate = weekStart.AddDays(i).Date;
-
-                    totalFindings.Add(records.Count(x =>
+                    totalFindings.Add(monthlyRecords.Count(x =>
                         x.Date.HasValue &&
                         x.Date.Value.Date == currentDate
                     ).ToString());
@@ -357,33 +373,22 @@ namespace E_MIL_Tracking_system.Controllers
                     findingPerHour = (Math.Floor(result * 10) / 10).ToString("0.0");
                 }
 
-                var findingHr = new List<string> { "", "", "", "", "", findingPerHour };
+                var findingHr = Enumerable.Repeat("", dates.Count).ToList();
+                findingHr[findingHr.Count - 1] = findingPerHour;
 
-                string rValue = "";
+                var rValues = Enumerable.Repeat("", dates.Count).ToList();
+                rValues[rValues.Count - 1] = "0.0";
 
-                if (weekIndex > 0)
+                auditTableRows.Add(new E_MIL_Tracking_system.DTOs.AuditTableRowDto
                 {
-                    decimal previousFindingPerHour = weeklyFindingPerHourData[weekIndex - 1];
-                    decimal currentFindingPerHour = weeklyFindingPerHourData[weekIndex];
-
-                    decimal r = Math.Abs(currentFindingPerHour - previousFindingPerHour);
-                    rValue = (Math.Floor(r * 10) / 10).ToString("0.0");
-                }
-                else
-                {
-                    rValue = "0.0";
-                }
-
-                return new
-                {
-                    Week = $"WK-{weekNo:00}",
+                    WeekNumber = weekIndex,
                     Dates = dates,
                     TotalFindings = totalFindings,
                     AuditHours = auditHourValues,
                     FindingHr = findingHr,
-                    RValues = new List<string> { "", "", "", "", "", rValue }
-                };
-            }).ToList();
+                    RValues = rValues
+                });
+            }
 
             ViewBag.AuditTableRows = auditTableRows;
 

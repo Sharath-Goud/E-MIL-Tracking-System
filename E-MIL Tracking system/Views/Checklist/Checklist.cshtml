@@ -585,10 +585,15 @@
                                     <td>
                                         @if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
                                         {
-                                            <img src="@item.BeforeImagePath"
-                                                 class="table-preview-img clickable-img"
-                                                 alt="Before Image"
-                                                 onclick="openImageModal(this.src)" />
+                                            <div class="before-images-grid">
+                                                @foreach (var img in item.BeforeImagePath.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                                {
+                                                    <img src="@img.Trim()"
+                                                         class="table-preview-img clickable-img before-grid-img"
+                                                         alt="Before Image"
+                                                         onclick="openImageModal(this.src)" />
+                                                }
+                                            </div>
                                         }
                                         else
                                         {
@@ -666,29 +671,33 @@
         }
     }
 
-        let beforeSelectedFiles = [];
+            let beforeSelectedFiles = [];
 
     const beforeImageInput = document.getElementById("beforeImage");
 
-        if (beforeImageInput) {
+     if (beforeImageInput) {
         beforeImageInput.addEventListener("change", function (e) {
-            const files = Array.from(e.target.files);
+            const newFiles = Array.from(e.target.files);
 
-            files.forEach(file => {
-                beforeSelectedFiles.push(file);
-            });
+            newFiles.forEach(file => {
+            const exists = beforeSelectedFiles.some(x =>
+                x.name === file.name &&
+                x.size === file.size &&
+                x.lastModified === file.lastModified
+            );
 
+        if (!exists) {
+            beforeSelectedFiles.push(file);
+        }
+    });
+
+            syncBeforeImageInput();
             updateMultipleImagePreview();
         });
     }
 
-        function updateMultipleImagePreview() {
-        const previewBox = document.getElementById("beforePreviewBox");
-        const text = document.getElementById("beforeFileText");
+    function syncBeforeImageInput() {
         const fileInput = document.getElementById("beforeImage");
-
-        previewBox.innerHTML = "";
-
         const dataTransfer = new DataTransfer();
 
         beforeSelectedFiles.forEach(file => {
@@ -696,14 +705,18 @@
         });
 
         fileInput.files = dataTransfer.files;
+    }
+
+    function updateMultipleImagePreview() {
+        const previewBox = document.getElementById("beforePreviewBox");
+        const text = document.getElementById("beforeFileText");
+
+        previewBox.innerHTML = "";
 
         if (beforeSelectedFiles.length === 0) {
             text.style.display = "inline";
             previewBox.appendChild(text);
-
-            fileInput.value = "";
             document.getElementById("status").value = "";
-
             updateStatusAutomatically();
             return;
         }
@@ -726,11 +739,13 @@
             previewBox.appendChild(wrapper);
         });
 
+        syncBeforeImageInput();
         updateStatusAutomatically();
     }
 
     function removeMultipleImage(index) {
         beforeSelectedFiles.splice(index, 1);
+        syncBeforeImageInput();
         updateMultipleImagePreview();
     }
 
@@ -957,9 +972,12 @@
         });
 
         checklistForm.addEventListener("submit", function (e) {
-                if (frequencyInput) {
-                    frequencyInput.disabled = false;
-                }
+            syncBeforeImageInput();
+
+            if (frequencyInput) {
+                frequencyInput.disabled = false;
+            }
+
             const requiredFields = [
                 document.getElementById("date"),
                 document.getElementById("weekCode"),
@@ -1315,14 +1333,32 @@
 @if (TempData["SuccessMessage"] != null)
 {
     <script>
-        showToast("@TempData["SuccessMessage"]", "linear-gradient(to right, #00b09b, #96c93d)");
+        document.addEventListener("DOMContentLoaded", function () {
+            const successMsg = '@TempData["SuccessMessage"]';
+
+            if (successMsg && successMsg.trim() !== "") {
+                showToast(
+                    successMsg,
+                    "linear-gradient(to right, #00b09b, #96c93d)"
+                );
+            }
+        });
     </script>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
     <script>
-        showToast("@TempData["ErrorMessage"]", "linear-gradient(to right, #ff5f6d, #ffc371)");
+        document.addEventListener("DOMContentLoaded", function () {
+            const errorMsg = '@TempData["ErrorMessage"]';
+
+            if (errorMsg && errorMsg.trim() !== "") {
+                showToast(
+                    errorMsg,
+                    "linear-gradient(to right, #ff5f6d, #ffc371)"
+                );
+            }
+        });
     </script>
 }
 
@@ -2601,5 +2637,27 @@
 
     .table-submit-form {
         margin: 0;
+    }
+
+    .before-images-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 42px);
+        gap: 5px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .before-grid-img {
+        width: 42px !important;
+        height: 36px !important;
+        object-fit: cover;
+        border-radius: 6px;
+        margin: 0 !important;
+        border: 1px solid #94a3b8;
+    }
+
+    .before-images-grid:has(img:only-child) {
+        grid-template-columns: 1fr;
+        justify-items: center;
     }
 </style>
