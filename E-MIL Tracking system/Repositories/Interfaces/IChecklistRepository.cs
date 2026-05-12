@@ -17,5 +17,8 @@ namespace E_MIL_Tracking_system.Repositories.Interfaces
         Task MarkAcceptedAsync(int checklistId, string email);
         Task MarkRejectedAsync(int checklistId, string email);
         Task<bool> AreAllAcceptedAsync(int checklistId);
+        Task UpdateMainChecklistAsync(CreateChecklistDto dto, string beforeImagePath);
+        Task<List<ChecklistApprovalReminderDto>> GetPendingReviewReminderAsync();
+        Task MarkReviewReminderSentAsync(int checklistId, string email);
     }
 }   

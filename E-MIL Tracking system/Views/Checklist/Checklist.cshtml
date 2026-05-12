@@ -21,6 +21,7 @@
               method="post"
               enctype="multipart/form-data">
             @Html.AntiForgeryToken()
+            <input type="hidden" id="checklistId" name="Id" value="0" />
             <div class="form-row">
                 <div class="form-group">
                     <label for="date">Date</label>
@@ -564,7 +565,29 @@
                             .Where(x => x.Date.HasValue && x.Date.Value.Date == DateTime.Today)
                             .OrderByDescending(x => x.Date))
                             {
-                                <tr>
+                                var safeProblem = item.ProblemStatement ?? "";
+                                var safeImages = item.BeforeImagePath ?? "";
+
+                                <tr class="prefill-row"
+                                    onclick="prefillChecklistForm(this)" data-id="@item.Id"
+                                    data-date="@(item.Date?.ToString("yyyy-MM-dd"))"
+                                    data-project="@item.Project"
+                                    data-line="@item.Line"
+                                    data-section="@item.Section"
+                                    data-station="@item.StationName"
+                                    data-issue="@item.IssueType"
+                                    data-problem="@safeProblem"
+                                    data-frequency="@item.Frequency"
+                                    data-severity="@item.IssueSeverity"
+                                    data-category="@item.Category"
+                                    data-duedate="@(item.DueDate?.ToString("yyyy-MM-dd"))"
+                                    data-cmdri="@item.CmDri"
+                                    data-department="@item.RespectiveDepartment"
+                                    data-apple="@item.AppleDri"
+                                    data-audit="@item.TypeOfAudit"
+                                    data-auditor="@item.Auditor"
+                                    data-images="@safeImages"
+                                    data-status="@item.Status">
                                     <td>@serialNo</td>
                                     <td>@item.Section</td>
                                     <td>@item.StationName</td>
@@ -591,7 +614,7 @@
                                                     <img src="@img.Trim()"
                                                          class="table-preview-img clickable-img before-grid-img"
                                                          alt="Before Image"
-                                                         onclick="openImageModal(this.src)" />
+                                                                         onclick="event.stopPropagation(); openImageModal(this.src)" />
                                                 }
                                             </div>
                                         }
@@ -672,6 +695,8 @@
     }
 
             let beforeSelectedFiles = [];
+            let isEditMode = false;
+            let existingBeforeImages = "";
 
     const beforeImageInput = document.getElementById("beforeImage");
 
@@ -889,7 +914,9 @@
             }
         });
 
-        const hasBeforeImage = beforeSelectedFiles.length > 0;
+            const hasBeforeImage =
+        beforeSelectedFiles.length > 0 ||
+        (isEditMode && existingBeforeImages.trim() !== "");
 
         if (statusField) {
             statusField.value = allFilled && hasBeforeImage ? "Ongoing" : "";
@@ -1007,7 +1034,10 @@
                 if (!field) return;
 
                 if (field.type === "file") {
-                    if (beforeSelectedFiles.length === 0) {
+                     if (
+                        beforeSelectedFiles.length === 0 &&
+                        (!isEditMode || existingBeforeImages.trim() === "")
+                    ) {
                         isValid = false;
                     }
                 } else {
@@ -1025,6 +1055,94 @@
 
         updateStatusAutomatically();
     }
+
+    function setFieldValue(id, value) {
+    const field = document.getElementById(id);
+    if (!field) return;
+
+    field.value = value || "";
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function prefillChecklistForm(row) {
+        isEditMode = true;
+    existingBeforeImages = row.dataset.images || "";
+
+    document.getElementById("checklistId").value = row.dataset.id;
+    document.getElementById("checklistForm").action = "/Checklist/UpdateChecklistMainRecord";
+    document.querySelector(".button-row .save-btn").innerText = "Update";
+
+    setFieldValue("date", row.dataset.date);
+    setFieldValue("project", row.dataset.project);
+    setFieldValue("line", row.dataset.line);
+    setFieldValue("section", row.dataset.section);
+    setFieldValue("stationName", row.dataset.station);
+    setFieldValue("issueType", row.dataset.issue);
+    setFieldValue("problemStatement", row.dataset.problem);
+    setFieldValue("frequency", row.dataset.frequency);
+    setFieldValue("issueSeverity", row.dataset.severity);
+    setFieldValue("category", row.dataset.category);
+    setFieldValue("dueDate", row.dataset.duedate);
+    setFieldValue("cmDri", row.dataset.cmdri);
+    setFieldValue("respectiveDepartment", row.dataset.department);
+    setFieldValue("appleDri", row.dataset.apple);
+    setFieldValue("typeOfAudit", row.dataset.audit);
+    setFieldValue("auditor", row.dataset.auditor);
+
+    const previewBox = document.getElementById("beforePreviewBox");
+    previewBox.innerHTML = "";
+
+        if (row.dataset.images) {
+
+        previewBox.innerHTML = "";
+
+        row.dataset.images.split(',').forEach((img, index) => {
+
+            const imageUrl = img.trim();
+
+            if (!imageUrl) return;
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "inside-preview-item";
+
+            wrapper.innerHTML = `
+                <img src="${imageUrl}"
+                     onclick="openImageModal('${imageUrl}')" />
+
+                <button type="button"
+                        class="inside-preview-remove">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            const removeBtn = wrapper.querySelector(".inside-preview-remove");
+
+            removeBtn.addEventListener("click", function () {
+
+                wrapper.remove();
+
+                let currentImages = existingBeforeImages
+                    .split(',')
+                    .map(x => x.trim())
+                    .filter(x => x !== imageUrl);
+
+                existingBeforeImages = currentImages.join(',');
+
+                updateStatusAutomatically();
+            });
+
+            previewBox.appendChild(wrapper);
+        });
+    }
+
+    setFieldValue("status", row.dataset.status || "Ongoing");
+
+    document.querySelector(".checklist-title").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
 </script>
 <script>
     let activeDropdownId = "";
@@ -2660,4 +2778,8 @@
         grid-template-columns: 1fr;
         justify-items: center;
     }
+
+    .prefill-row {
+    cursor: pointer;
+}
 </style>

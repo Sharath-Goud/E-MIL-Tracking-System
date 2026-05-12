@@ -280,5 +280,60 @@ namespace E_MIL_Tracking_system.Services
             await con.OpenAsync();
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public async Task UpdateMainChecklistAsync(CreateChecklistDto dto, string webRootPath)
+        {
+            var oldRecord = await _repo.GetByIdAsync(dto.Id);
+
+            if (oldRecord == null)
+            {
+                throw new Exception("Checklist record not found");
+            }
+
+            var beforeImagePaths = new List<string>();
+
+            if (dto.BeforeImages != null && dto.BeforeImages.Any(x => x.Length > 0))
+            {
+                var folder = Path.Combine(webRootPath, "uploads", "checklist");
+
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                foreach (var image in dto.BeforeImages)
+                {
+                    if (image == null || image.Length == 0)
+                        continue;
+
+                    var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+                    var fullPath = Path.Combine(folder, fileName);
+
+                    using var stream = new FileStream(fullPath, FileMode.Create);
+                    await image.CopyToAsync(stream);
+
+                    beforeImagePaths.Add("/uploads/checklist/" + fileName);
+                }
+            }
+
+            string finalBeforeImagePath = beforeImagePaths.Any()
+                ? string.Join(",", beforeImagePaths)
+                : oldRecord.BeforeImagePath ?? "";
+
+            dto.Status = string.IsNullOrWhiteSpace(finalBeforeImagePath)
+                ? ""
+                : "Ongoing";
+
+            await _repo.UpdateMainChecklistAsync(dto, finalBeforeImagePath);
+        }
+
+
+        public async Task<List<ChecklistApprovalReminderDto>> GetPendingReviewReminderAsync()
+        {
+            return await _repo.GetPendingReviewReminderAsync();
+        }
+
+        public async Task MarkReviewReminderSentAsync(int checklistId, string email)
+        {
+            await _repo.MarkReviewReminderSentAsync(checklistId, email);
+        }
     }
 }

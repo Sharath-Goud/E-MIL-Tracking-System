@@ -5,6 +5,7 @@ namespace E_MIL_Tracking_system.DTOs.Checklist
 {
     public class CreateChecklistDto
     {
+        public int Id { get; set; }
         [Required(ErrorMessage = "Date is required.")]
         public DateTime? Date { get; set; }
 

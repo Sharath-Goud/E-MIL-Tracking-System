@@ -59,6 +59,52 @@ namespace E_MIL_Tracking_system.Services
                         Math.Min(50, item.ProblemStatement.Length - (i * 50))
                     ))));
 
+                var inlineImages = new List<InlineEmailImage>();
+                string beforeImageHtml = "-";
+
+                if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
+                {
+                    beforeImageHtml = "";
+
+                    var imagePaths = item.BeforeImagePath
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .ToList();
+
+                    foreach (var imagePath in imagePaths)
+                    {
+                        string fullPath = Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+                        );
+
+                        if (File.Exists(fullPath))
+                        {
+                            string contentId = "before_" + Guid.NewGuid().ToString("N");
+
+                            inlineImages.Add(new InlineEmailImage
+                            {
+                                ContentId = contentId,
+                                FilePath = fullPath
+                            });
+
+                            beforeImageHtml += $@"
+                <div style='display:inline-block; margin:4px;'>
+                    <img src='cid:{contentId}'
+                         width='80'
+                         height='60'
+                         style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />
+                </div>";
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(beforeImageHtml))
+                    {
+                        beforeImageHtml = "-";
+                    }
+                }
+
                 string body = $@"
                     <html>
                     <body style='font-family:Arial, sans-serif; background:#f4f6f8; padding:20px;'>
@@ -122,7 +168,7 @@ namespace E_MIL_Tracking_system.Services
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.AppleDri)}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.TypeOfAudit)}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.Auditor)}</td>
-                                        <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.BeforeImagePath)}</td>
+                                        <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.Rcca)}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>
                                             {WebUtility.HtmlEncode(item.Status)}
@@ -140,7 +186,7 @@ namespace E_MIL_Tracking_system.Services
                         "Sharath_G@foxlink.com",
                         subject,
                         body,
-                        new List<InlineEmailImage>()
+                        inlineImages
                     );
 
                     await checklistService.MarkRccaReminderMailSentAsync(item.Id);

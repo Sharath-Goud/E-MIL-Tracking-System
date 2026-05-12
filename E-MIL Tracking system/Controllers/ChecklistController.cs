@@ -283,158 +283,6 @@ namespace E_MIL_Tracking_system.Controllers
             return RedirectToAction(nameof(Checklist));
         }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create(CreateChecklistDto dto)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        TempData["ErrorMessage"] = "Please provide all the input fields";
-        //        var records = await _service.GetAllAsync();
-        //        return View("Checklist", records);
-        //    }
-
-        //    int savedId = await _service.SaveAsync(dto, _env.WebRootPath);
-
-        //    var savedRecord = await _service.GetByIdAsync(savedId);
-
-        //    if (savedRecord == null)
-        //    {
-        //        TempData["ErrorMessage"] = "Checklist saved, but mail data not found.";
-        //        return RedirectToAction(nameof(Checklist));
-        //    }
-
-        //    //string subject = $"MIL Audit report {DateTime.Now:dd-MM-yyyy}";
-
-        //    //string body = $@"
-        //    //    <!DOCTYPE html>
-        //    //    <html>
-        //    //    <head>
-        //    //        <meta charset='UTF-8'>
-        //    //    </head>
-        //    //    <body style='margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif; color:#1f2937;'>
-
-        //    //        <div style='max-width:1200px; margin:0 auto; padding:24px;'>
-
-        //    //            <div style='background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:22px;'>
-
-        //    //                <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
-        //    //                    MIL Audit Report
-        //    //                </h2>
-
-        //    //                <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
-
-        //    //                <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
-
-        //    //                <p style='margin:0 0 10px; font-size:14px; line-height:1.6;'>
-        //    //                    I have attached the MIL audit points for your review.
-        //    //                </p>
-
-        //    //                <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
-        //    //                    Please take necessary actions to address the identified issues and provide an update on the CP date,
-        //    //                    root cause analysis and corrective actions for the mentioned points.
-        //    //                </p>
-
-        //    //                <div style='overflow-x:auto; width:100%;'>
-        //    //                     <table cellpadding='0' cellspacing='0'
-        //    //                        style='border-collapse:collapse; width:100%; min-width:1500px; table-layout:fixed; font-family:Arial, sans-serif; font-size:12px; text-align:center; border:1px solid #d1d5db;'>
-
-        //    //                         <thead>
-        //    //                            <tr style='background:#d7e5e1; color:#111827;'>
-        //    //                                <th style='width:60px; border:1px solid #c4cfd4; padding:10px 8px;'>S.NO</th>
-        //    //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Date</th>
-        //    //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Week<br/>Code</th>
-        //    //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Month</th>
-        //    //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Project</th>
-        //    //                                <th style='width:90px; border:1px solid #c4cfd4; padding:10px 8px;'>Section</th>
-        //    //                                <th style='width:80px; border:1px solid #c4cfd4; padding:10px 8px;'>Line</th>
-        //    //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Station Name</th>
-        //    //                                <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Problem Statement</th>
-        //    //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Frequency</th>
-        //    //                                <th style='width:110px; border:1px solid #c4cfd4; padding:10px 8px;'>Issue<br/>Severity</th>
-        //    //                                <th style='width:150px; border:1px solid #c4cfd4; padding:10px 8px;'>Category</th>
-        //    //                                <th style='width:220px; border:1px solid #c4cfd4; padding:10px 8px;'>Corrective Action</th>
-        //    //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Due Date</th>
-        //    //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>CM DRI</th>
-        //    //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Apple DRI</th>
-        //    //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Type of Audit</th>
-        //    //                                <th style='width:100px; border:1px solid #c4cfd4; padding:10px 8px;'>Status</th>
-        //    //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>Before Image</th>
-        //    //                                <th style='width:120px; border:1px solid #c4cfd4; padding:10px 8px;'>After Image</th>
-        //    //                            </tr>
-        //    //                        </thead>
-
-
-        //    //                        <tbody>
-        //    //                            <tr style='background:#ffffff; color:#1f2937;'>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>1</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.WeekCode}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Month}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.Project}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Section}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Line}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.StationName}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5;'>{savedRecord.ProblemStatement}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Frequency}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:600;'>{savedRecord.IssueSeverity}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.Category}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; text-align:left; line-height:1.5; font-weight:600;'>{(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.CmDri}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.AppleDri}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>{savedRecord.TypeOfAudit}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px; font-weight:700; color:#b45309;'>{savedRecord.Status}</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>BEFORE_IMAGE_PLACEHOLDER</td>
-        //    //                                <td style='border:1px solid #e5e7eb; padding:10px 8px;'>AFTER_IMAGE_PLACEHOLDER</td>
-        //    //                            </tr>
-        //    //                        </tbody>
-        //    //                    </table>
-        //    //                </div>
-        //    //            </div>
-        //    //        </div>
-
-        //    //    </body>
-        //    //    </html>";
-
-        //    //string? beforeImageFullPath = null;
-        //    //string? afterImageFullPath = null;
-
-        //    //if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
-        //    //{
-        //    //    beforeImageFullPath = Path.Combine(
-        //    //        _env.WebRootPath,
-        //    //        savedRecord.BeforeImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-        //    //    );
-        //    //}
-
-        //    //if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
-        //    //{
-        //    //    afterImageFullPath = Path.Combine(
-        //    //        _env.WebRootPath,
-        //    //        savedRecord.AfterImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-        //    //    );
-        //    //}
-
-        //    ////Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
-        //    //// Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
-        //    //// Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
-        //    //_emailQueue.QueueEmail(async cancellationToken =>
-        //    //{
-        //    //    await _emailService.SendEmailWithInlineImagesAsync(
-        //    //        "Sharath_G@foxlink.com",
-        //    //        subject,
-        //    //        body,
-        //    //        beforeImageFullPath,
-        //    //        afterImageFullPath
-        //    //    );
-        //    //});
-
-        //    TempData["SuccessMessage"] = "Checklist form data submitted successfully";
-        //    return RedirectToAction(nameof(Checklist));
-        //}
-
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateChecklistRecord(UpdateChecklistRecordDto dto)
@@ -1307,6 +1155,33 @@ namespace E_MIL_Tracking_system.Controllers
             });
 
             TempData["SuccessMessage"] = "Today records sent successfully";
+            return RedirectToAction(nameof(Checklist));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateChecklistMainRecord(CreateChecklistDto dto)
+        {
+            if (dto.Id <= 0)
+            {
+                TempData["ErrorMessage"] = "Invalid checklist record.";
+                return RedirectToAction(nameof(Checklist));
+            }
+
+            ModelState.Remove("BeforeImages");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please provide all the input fields";
+
+                var records = await _service.GetAllAsync();
+                return View("Checklist", records);
+            }
+
+            await _service.UpdateMainChecklistAsync(dto, _env.WebRootPath);
+
+            TempData["SuccessMessage"] = "Checklist updated successfully.";
+
             return RedirectToAction(nameof(Checklist));
         }
     }

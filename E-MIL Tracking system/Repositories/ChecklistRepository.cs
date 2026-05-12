@@ -298,22 +298,26 @@ namespace E_MIL_Tracking_system.Repositories
             await con.OpenAsync();
 
             string query = @"
-        INSERT INTO ChecklistApprovalStatus
-        (
-            ChecklistId,
-            Email,
-            IsAccepted,
-            IsRejected,
-            ActionDate
-        )
-        VALUES
-        (
-            @ChecklistId,
-            @Email,
-            0,
-            0,
-            NULL
-        )";
+                INSERT INTO ChecklistApprovalStatus
+                (
+                    ChecklistId,
+                    Email,
+                    IsAccepted,
+                    IsRejected,
+                    ActionDate,
+                    ReviewMailSentAt,
+                    ReviewReminderSent
+                )
+                VALUES
+                (
+                    @ChecklistId,
+                    @Email,
+                    0,
+                    0,
+                    NULL,
+                    GETDATE(),
+                    0
+                )";
 
             using var cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
@@ -389,6 +393,153 @@ namespace E_MIL_Tracking_system.Repositories
             int notAcceptedCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
 
             return notAcceptedCount == 0;
+        }
+
+        public async Task UpdateMainChecklistAsync(CreateChecklistDto dto, string beforeImagePath)
+        {
+            using var connection = _db.CreateConnection();
+            await connection.OpenAsync();
+
+            string query = @"
+        UPDATE ChecklistRecords
+        SET Date = @Date,
+            WeekCode = @WeekCode,
+            Month = @Month,
+            Project = @Project,
+            Line = @Line,
+            Section = @Section,
+            StationName = @StationName,
+            IssueType = @IssueType,
+            ProblemStatement = @ProblemStatement,
+            Frequency = @Frequency,
+            IssueSeverity = @IssueSeverity,
+            Category = @Category,
+            DueDate = @DueDate,
+            CmDri = @CmDri,
+            RespectiveDepartment = @RespectiveDepartment,
+            AppleDri = @AppleDri,
+            TypeOfAudit = @TypeOfAudit,
+            Auditor = @Auditor,
+            BeforeImagePath = @BeforeImagePath,
+            Status = @Status
+        WHERE Id = @Id";
+
+            using var cmd = new SqlCommand(query, connection);
+
+            cmd.Parameters.AddWithValue("@Id", dto.Id);
+            cmd.Parameters.AddWithValue("@Date", dto.Date ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@WeekCode", dto.WeekCode ?? "");
+            cmd.Parameters.AddWithValue("@Month", dto.Month ?? "");
+            cmd.Parameters.AddWithValue("@Project", dto.Project ?? "");
+            cmd.Parameters.AddWithValue("@Line", dto.Line ?? "");
+            cmd.Parameters.AddWithValue("@Section", dto.Section ?? "");
+            cmd.Parameters.AddWithValue("@StationName", dto.StationName ?? "");
+            cmd.Parameters.AddWithValue("@IssueType", dto.IssueType ?? "");
+            cmd.Parameters.AddWithValue("@ProblemStatement", dto.ProblemStatement ?? "");
+            cmd.Parameters.AddWithValue("@Frequency", dto.Frequency ?? "");
+            cmd.Parameters.AddWithValue("@IssueSeverity", dto.IssueSeverity ?? "");
+            cmd.Parameters.AddWithValue("@Category", dto.Category ?? "");
+            cmd.Parameters.AddWithValue("@DueDate", dto.DueDate ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@CmDri", dto.CmDri ?? "");
+            cmd.Parameters.AddWithValue("@RespectiveDepartment", dto.RespectiveDepartment ?? "");
+            cmd.Parameters.AddWithValue("@AppleDri", dto.AppleDri ?? "");
+            cmd.Parameters.AddWithValue("@TypeOfAudit", dto.TypeOfAudit ?? "");
+            cmd.Parameters.AddWithValue("@Auditor", dto.Auditor ?? "");
+            cmd.Parameters.AddWithValue("@BeforeImagePath", beforeImagePath ?? "");
+            cmd.Parameters.AddWithValue("@Status", dto.Status ?? "");
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<List<ChecklistApprovalReminderDto>> GetPendingReviewReminderAsync()
+        {
+            var list = new List<ChecklistApprovalReminderDto>();
+
+            using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
+            string query = @"
+        SELECT 
+            a.ChecklistId,
+            a.Email,
+
+            c.Section,
+            c.StationName,
+            c.IssueType,
+            c.ProblemStatement,
+            c.Frequency,
+            c.IssueSeverity,
+            c.Category,
+            c.Rcca,
+            c.Date,
+            c.DueDate,
+            c.CmDri,
+            c.AppleDri,
+            c.TypeOfAudit,
+            c.BeforeImagePath,
+            c.AfterImagePath,
+            c.Status
+
+        FROM ChecklistApprovalStatus a
+        INNER JOIN ChecklistRecords c ON c.Id = a.ChecklistId
+        WHERE a.IsAccepted = 0
+          AND a.IsRejected = 0
+          AND a.ReviewReminderSent = 0
+          AND a.ReviewMailSentAt <= DATEADD(MINUTE, -121, GETDATE())";
+
+            using var cmd = new SqlCommand(query, con);
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                list.Add(new ChecklistApprovalReminderDto
+                {
+                    ChecklistId = Convert.ToInt32(reader["ChecklistId"]),
+                    Email = reader["Email"]?.ToString(),
+
+                    Section = reader["Section"]?.ToString(),
+                    StationName = reader["StationName"]?.ToString(),
+                    IssueType = reader["IssueType"]?.ToString(),
+                    ProblemStatement = reader["ProblemStatement"]?.ToString(),
+                    Frequency = reader["Frequency"]?.ToString(),
+                    IssueSeverity = reader["IssueSeverity"]?.ToString(),
+                    Category = reader["Category"]?.ToString(),
+                    Rcca = reader["Rcca"]?.ToString(),
+
+                    Date = reader["Date"] == DBNull.Value ? null : Convert.ToDateTime(reader["Date"]),
+                    DueDate = reader["DueDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["DueDate"]),
+
+                    CmDri = reader["CmDri"]?.ToString(),
+                    AppleDri = reader["AppleDri"]?.ToString(),
+                    TypeOfAudit = reader["TypeOfAudit"]?.ToString(),
+
+                    BeforeImagePath = reader["BeforeImagePath"]?.ToString(),
+                    AfterImagePath = reader["AfterImagePath"]?.ToString(),
+                    Status = reader["Status"]?.ToString()
+                });
+            }
+
+            return list;
+        }
+
+
+        public async Task MarkReviewReminderSentAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
+            string query = @"
+        UPDATE ChecklistApprovalStatus
+        SET ReviewReminderSent = 1
+        WHERE ChecklistId = @ChecklistId
+          AND LOWER(LTRIM(RTRIM(Email))) = LOWER(LTRIM(RTRIM(@Email)))";
+
+            using var cmd = new SqlCommand(query, con);
+
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email ?? "");
+
+            await cmd.ExecuteNonQueryAsync();
         }
     }
 }

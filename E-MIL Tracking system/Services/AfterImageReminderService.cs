@@ -1,4 +1,5 @@
-﻿using E_MIL_Tracking_system.Services;
+﻿using E_MIL_Tracking_system.DTOs;
+using E_MIL_Tracking_system.Services;
 
 public class AfterImageReminderService : BackgroundService
 {
@@ -26,6 +27,52 @@ public class AfterImageReminderService : BackgroundService
             foreach (var item in records)
             {
                 string subject = $"After Image Reminder - {DateTime.Now:dd-MM-yyyy}";
+
+                var inlineImages = new List<InlineEmailImage>();
+                string beforeImageHtml = "-";
+
+                if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
+                {
+                    beforeImageHtml = "";
+
+                    var imagePaths = item.BeforeImagePath
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .ToList();
+
+                    foreach (var imagePath in imagePaths)
+                    {
+                        string fullPath = Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+                        );
+
+                        if (File.Exists(fullPath))
+                        {
+                            string contentId = "before_" + Guid.NewGuid().ToString("N");
+
+                            inlineImages.Add(new InlineEmailImage
+                            {
+                                ContentId = contentId,
+                                FilePath = fullPath
+                            });
+
+                            beforeImageHtml += $@"
+                <div style='display:inline-block; margin:4px;'>
+                    <img src='cid:{contentId}'
+                         width='80'
+                         height='60'
+                         style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />
+                </div>";
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(beforeImageHtml))
+                    {
+                        beforeImageHtml = "-";
+                    }
+                }
 
                 string body = $@"
                 <html>
@@ -85,7 +132,7 @@ public class AfterImageReminderService : BackgroundService
                                     <td style='border:1px solid #e5e7eb; padding:10px;'>{item.AppleDri}</td>
                                     <td style='border:1px solid #e5e7eb; padding:10px;'>{item.TypeOfAudit}</td>
                                     <td style='border:1px solid #e5e7eb; padding:10px;'>{item.Auditor}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{item.BeforeImagePath}</td>
+                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
                                     <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>{item.Status}</td>
                                 </tr>
                             </tbody>
@@ -94,14 +141,15 @@ public class AfterImageReminderService : BackgroundService
                 </body>
                 </html>";
 
+                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
                 _emailQueue.QueueEmail(async ct =>
                 {
-                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-
-                    await emailService.SendEmailAsync(
+                    await emailService.SendEmailWithMultipleInlineImagesAsync(
                         "Sharath_G@foxlink.com",
                         subject,
-                        body
+                        body,
+                        inlineImages
                     );
                 });
 
