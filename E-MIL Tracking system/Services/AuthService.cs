@@ -48,5 +48,15 @@ namespace E_MIL_Tracking_system.Services
 
             return await _repository.RegisterAsync(model, imagePath);
         }
+
+        public async Task<List<User>> GetOnlyUsersAsync()
+        {
+            return await _repository.GetOnlyUsersAsync();
+        }
+
+        public async Task<bool> UpdateUserAccessAsync(int userId, bool isAccessed)
+        {
+            return await _repository.UpdateUserAccessAsync(userId, isAccessed);
+        }
     }
 }

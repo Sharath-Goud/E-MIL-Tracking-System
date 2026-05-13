@@ -1,0 +1,159 @@
+﻿@model List<E_MIL_Tracking_system.Models.User>
+
+@{
+    ViewData["Title"] = "User's Access";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="access-card">
+    <h2><i class="fa fa-users-gear"></i> User's Access</h2>
+
+    <form asp-controller="Auth" asp-action="UsersAccess" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label>Select User</label>
+            <select name="userId" class="form-control" required>
+                <option value="">Select User</option>
+                @foreach (var user in Model)
+                {
+                    <option value="@user.Id">
+                        @user.FullName
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="checkbox-row">
+            <input type="checkbox" name="isAccessed" value="true" id="isAccessed" />
+            <input type="hidden" name="isAccessed" value="false" />
+            <label for="isAccessed">Access</label>
+        </div>
+
+        <button type="submit" class="submit-btn">
+            Save Access
+        </button>
+    </form>
+</div>
+
+<style>
+    .access-card {
+        width: 100%;
+        max-width: 300px;
+        margin: 120px auto;
+        background: rgba(20, 22, 44, 0.88);
+        padding: 32px;
+        border-radius: 24px;
+        color: white;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.14);
+    }
+
+        .access-card h2 {
+            margin: 0 0 35px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .access-card form {
+            width: 100%;
+        }
+
+    .form-group {
+        width: 100%;
+        margin-bottom: 25px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: none;
+        outline: none;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+
+    .checkbox-row {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 5px 0 32px;
+        font-size: 17px;
+    }
+
+        .checkbox-row input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+
+    .submit-btn {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 14px;
+        background: linear-gradient(135deg, #1D2545, #1D4ED8);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        box-shadow: 0 8px 20px rgba(37,99,235,0.30);
+    }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #1D2545, #2563eb);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(37,99,235,0.35), 0 0 18px rgba(147,197,253,0.35);
+        }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        Toastify({
+            text: "@TempData["SuccessMessage"]",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            close: true,
+            style: {
+                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                borderRadius: "12px",
+                color: "#fff"
+            }
+        }).showToast();
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        Toastify({
+            text: "@TempData["ErrorMessage"]",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            close: true,
+            style: {
+                background: "linear-gradient(135deg, #dc2626, #ef4444)",
+                borderRadius: "12px",
+                color: "#fff"
+            }
+        }).showToast();
+    </script>
+}

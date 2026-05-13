@@ -6,11 +6,19 @@
 @{
     ViewData["Title"] = "Checklist";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+
+    var role = Context.Session.GetString("Role");
+    var isAccessedValue = Context.Session.GetString("IsAccessed");
+
     bool isAdmin = string.Equals(
-    Context.Session.GetString("Role"),
-            "Admin",
-            StringComparison.OrdinalIgnoreCase
-        );
+        role,
+        "Admin",
+        StringComparison.OrdinalIgnoreCase
+    );
+
+    bool isAccessedUser =
+        string.Equals(role, "User", StringComparison.OrdinalIgnoreCase)
+        && isAccessedValue == "1";
 }
 
 <div class="checklist-page">
@@ -78,23 +86,34 @@
                     <label for="section" class="label-with-actions">
                         <span>Section</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('section', 'Section', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('section', 'Section', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('section', 'Section', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('section', 'Section', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('section', 'Section', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -119,23 +138,34 @@
                     <label for="stationName" class="label-with-actions">
                         <span>Station Name</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('stationName', 'Station Name', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('stationName', 'Station Name', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('stationName', 'Station Name', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('stationName', 'Station Name', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('stationName', 'Station Name', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -226,23 +256,34 @@
                     <label for="issueSeverity" class="label-with-actions">
                         <span>Issue Severity</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('issueSeverity', 'Issue Severity', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -263,23 +304,34 @@
                     <label for="category" class="label-with-actions">
                         <span>Category</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('category', 'Category', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('category', 'Category', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('category', 'Category', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('category', 'Category', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('category', 'Category', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -307,23 +359,34 @@
                     <label for="cmDri" class="label-with-actions">
                         <span>CM DRI</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('cmDri', 'CM DRI', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('cmDri', 'CM DRI', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('cmDri', 'CM DRI', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('cmDri', 'CM DRI', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('cmDri', 'CM DRI', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -347,23 +410,34 @@
                     <label for="respectiveDepartment" class="label-with-actions">
                         <span>Respective Department</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('respectiveDepartment', 'Respective Department', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -384,23 +458,34 @@
                     <label for="appleDri" class="label-with-actions">
                         <span>Apple DRI</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('appleDri', 'Apple DRI', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('appleDri', 'Apple DRI', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('appleDri', 'Apple DRI', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('appleDri', 'Apple DRI', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('appleDri', 'Apple DRI', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -433,23 +518,34 @@
                     <label for="auditor" class="label-with-actions">
                         <span>Auditor</span>
 
-                        @if (isAdmin)
+                        @if (isAdmin || isAccessedUser)
                         {
                             <span class="dropdown-action-icons">
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('auditor', 'Auditor', 'add')">
-                                    <i class="fa fa-plus"></i>
-                                </button>
 
-                                <button type="button" class="dropdown-icon-btn"
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('auditor', 'Auditor', 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
+
+                                <button type="button"
+                                        class="dropdown-icon-btn"
                                         onclick="openDropdownPopup('auditor', 'Auditor', 'edit')">
                                     <i class="fa fa-pen"></i>
                                 </button>
 
-                                <button type="button" class="dropdown-icon-btn"
-                                        onclick="openDropdownPopup('auditor', 'Auditor', 'delete')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button type="button"
+                                            class="dropdown-icon-btn"
+                                            onclick="openDropdownPopup('auditor', 'Auditor', 'delete')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+
                             </span>
                         }
                     </label>
@@ -1173,7 +1269,7 @@
 
         if (mode === "edit") {
             title.innerText = "Edit " + labelName;
-            input.placeholder = "Or enter new " + labelName;
+            input.placeholder = "Select the name and edit the " + labelName;
 
             editSelect.style.display = "block";
 

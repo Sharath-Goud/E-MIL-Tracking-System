@@ -8,5 +8,7 @@ namespace E_MIL_Tracking_system.Repositories.Interfaces
         Task<User?> GetUserAsync(string empId, string password);
         Task<bool> UserExistsAsync(string empId);
         Task<bool> RegisterAsync(RegisterDto model, string? imagePath);
+        Task<List<User>> GetOnlyUsersAsync();
+        Task<bool> UpdateUserAccessAsync(int userId, bool isAccessed);
     }
 }

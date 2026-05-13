@@ -78,6 +78,7 @@
             <div class="filter-item search-box">
                 <label>Search</label>
                 <input type="text"
+                       id="liveSearchInput"
                        name="searchText"
                        value="@ViewBag.SearchText"
                        placeholder="Search here..." />
@@ -233,35 +234,59 @@
         }
     });
 
-        document.addEventListener("DOMContentLoaded", function () {
+         document.addEventListener("DOMContentLoaded", function () {
         const rowsPerPage = 10;
         const tableBody = document.getElementById("a2ReportTableBody");
         const pagination = document.getElementById("recordsPagination");
+        const searchInput = document.getElementById("liveSearchInput");
 
         if (!tableBody || !pagination) return;
 
-        const rows = Array.from(tableBody.querySelectorAll("tr.a2-report-row"));
+        const allRows = Array.from(tableBody.querySelectorAll("tr.a2-report-row"));
+        let filteredRows = [...allRows];
         let currentPage = 1;
-        const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+        function filterRows() {
+            const searchValue = searchInput.value.toLowerCase().trim();
+
+            filteredRows = allRows.filter(row => {
+                return row.innerText.toLowerCase().includes(searchValue);
+            });
+
+            currentPage = 1;
+            showPage();
+        }
 
         function showPage() {
-            rows.forEach((row, index) => {
-                row.style.display =
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+
+            allRows.forEach(row => row.style.display = "none");
+
+            filteredRows.forEach((row, index) => {
+                if (
                     index >= (currentPage - 1) * rowsPerPage &&
                     index < currentPage * rowsPerPage
-                        ? ""
-                        : "none";
+                ) {
+                    row.style.display = "";
 
-                if (row.style.display !== "none") {
-                    row.querySelector("td:first-child").textContent = index + 1;
+                    const serialCell = row.querySelector("td:first-child");
+                    if (serialCell) {
+                        serialCell.textContent = index + 1;
+                    }
                 }
             });
 
-            buildPagination();
+            buildPagination(totalPages);
         }
 
-        function buildPagination() {
+        function buildPagination(totalPages) {
             pagination.innerHTML = "";
+
+            if (filteredRows.length === 0) {
+                pagination.innerHTML = `<span style="color:white;font-weight:600;">No matching records found</span>`;
+                return;
+            }
+
             if (totalPages <= 1) return;
 
             pagination.appendChild(makeBtn("← Prev", "page-nav-btn", currentPage === 1, function () {
@@ -269,7 +294,7 @@
                 showPage();
             }));
 
-            getPages().forEach(page => {
+            getPages(totalPages).forEach(page => {
                 if (page === "...") {
                     const dots = document.createElement("span");
                     dots.className = "page-dots";
@@ -306,7 +331,7 @@
             return btn;
         }
 
-        function getPages() {
+        function getPages(totalPages) {
             const pages = [];
 
             if (totalPages <= 7) {
@@ -328,6 +353,10 @@
             pages.push(totalPages);
 
             return pages;
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener("input", filterRows);
         }
 
         showPage();

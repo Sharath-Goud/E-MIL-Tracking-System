@@ -40,6 +40,7 @@ namespace E_MIL_Tracking_system.Controllers
                 HttpContext.Session.SetString("Designation", user.Designation ?? "");
                 HttpContext.Session.SetString("Role", user.Role ?? "");
                 HttpContext.Session.SetString("ProfileImagePath", user.ProfileImagePath ?? "");
+                HttpContext.Session.SetString("IsAccessed", user.IsAccessed ? "1" : "0");
 
                 return RedirectToAction("Index", "Dashboard");
             }
@@ -88,12 +89,41 @@ namespace E_MIL_Tracking_system.Controllers
 
             if (result)
             {
+                HttpContext.Session.SetString("EmpId", model.UserId ?? "");
+                HttpContext.Session.SetString("FullName", model.FullName ?? "");
+                HttpContext.Session.SetString("Designation", model.Designation ?? "");
+                HttpContext.Session.SetString("Role", model.Role ?? "");
+
+                var user = await _service.GetUserAsync(model.UserId, model.Password);
+                HttpContext.Session.SetString("ProfileImagePath", user?.ProfileImagePath ?? "");
+
                 TempData["SuccessMessage"] = "Registration completed successfully.";
                 return RedirectToAction("Index", "Dashboard");
             }
 
             ViewBag.Error = "Registration failed. Please try again.";
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> UsersAccess()
+        {
+            var users = await _service.GetOnlyUsersAsync();
+            return View(users);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UsersAccess(int userId, bool isAccessed)
+        {
+            var result = await _service.UpdateUserAccessAsync(userId, isAccessed);
+
+            if (result)
+                TempData["SuccessMessage"] = "User access updated successfully.";
+            else
+                TempData["ErrorMessage"] = "Failed to update user access.";
+
+            return RedirectToAction("UsersAccess");
         }
     }
 }

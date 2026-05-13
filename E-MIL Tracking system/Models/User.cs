@@ -9,5 +9,6 @@
         public string? Designation { get; set; }
         public string? Role { get; set; }
         public string? ProfileImagePath { get; set; }
+        public bool IsAccessed { get; set; }
     }
 }

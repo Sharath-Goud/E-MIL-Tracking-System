@@ -779,7 +779,10 @@
                         <i class="fa fa-user-plus"></i>
                         Registration
                     </a>
-
+                    <a asp-controller="Auth" asp-action="UsersAccess">
+                        <i class="fa fa-users-gear"></i>
+                        User's Access
+                    </a>
                     <a href="/Auth/Login">
                         <i class="fa fa-right-from-bracket"></i>
                         Logout
@@ -796,18 +799,23 @@
 
             <div class="profile-modal-header">
                 <div class="profile-avatar">
-                    @if (!string.IsNullOrEmpty(Context.Session.GetString("ProfileImagePath")))
-                    {
-                        <img src="@Context.Session.GetString("ProfileImagePath")" alt="Profile Image" />
+                    @{
+                        var profileImage = Context.Session.GetString("ProfileImagePath");
                     }
-                    else
-                    {
-                        <i class="fa fa-user"></i>
-                    }
+
+                    <div class="profile-avatar">
+                        @if (!string.IsNullOrWhiteSpace(profileImage))
+                        {
+                            <img src="@Url.Content(profileImage)" alt="Profile Image" />
+                        }
+                        else
+                        {
+                            <i class="fa fa-user"></i>
+                        }
+                    </div>
                 </div>
 
                 <h2>@Context.Session.GetString("FullName")</h2>
-                <p>@Context.Session.GetString("Role")</p>
             </div>
 
             <div class="profile-modal-body">
