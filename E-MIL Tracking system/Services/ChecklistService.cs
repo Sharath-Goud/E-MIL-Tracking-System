@@ -290,19 +290,32 @@ namespace E_MIL_Tracking_system.Services
                 throw new Exception("Checklist record not found");
             }
 
-            var beforeImagePaths = new List<string>();
+            var finalImagePaths = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(dto.ExistingBeforeImages))
+            {
+                finalImagePaths.AddRange(
+                    dto.ExistingBeforeImages
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                );
+            }
 
             if (dto.BeforeImages != null && dto.BeforeImages.Any(x => x.Length > 0))
             {
                 var folder = Path.Combine(webRootPath, "uploads", "checklist");
 
                 if (!Directory.Exists(folder))
+                {
                     Directory.CreateDirectory(folder);
+                }
 
                 foreach (var image in dto.BeforeImages)
                 {
                     if (image == null || image.Length == 0)
+                    {
                         continue;
+                    }
 
                     var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
                     var fullPath = Path.Combine(folder, fileName);
@@ -310,13 +323,16 @@ namespace E_MIL_Tracking_system.Services
                     using var stream = new FileStream(fullPath, FileMode.Create);
                     await image.CopyToAsync(stream);
 
-                    beforeImagePaths.Add("/uploads/checklist/" + fileName);
+                    finalImagePaths.Add("/uploads/checklist/" + fileName);
                 }
             }
 
-            string finalBeforeImagePath = beforeImagePaths.Any()
-                ? string.Join(",", beforeImagePaths)
-                : oldRecord.BeforeImagePath ?? "";
+            string finalBeforeImagePath = string.Join(",",
+                finalImagePaths
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x => x.Trim())
+                    .Distinct()
+            );
 
             dto.Status = string.IsNullOrWhiteSpace(finalBeforeImagePath)
                 ? ""

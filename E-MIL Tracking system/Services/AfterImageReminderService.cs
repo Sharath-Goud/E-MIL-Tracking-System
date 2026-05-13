@@ -5,13 +5,16 @@ public class AfterImageReminderService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IBackgroundEmailQueue _emailQueue;
+    private readonly IWebHostEnvironment _env;
 
     public AfterImageReminderService(
-        IServiceScopeFactory scopeFactory,
-        IBackgroundEmailQueue emailQueue)
+    IServiceScopeFactory scopeFactory,
+    IBackgroundEmailQueue emailQueue,
+    IWebHostEnvironment env)
     {
         _scopeFactory = scopeFactory;
         _emailQueue = emailQueue;
+        _env = env;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -33,18 +36,17 @@ public class AfterImageReminderService : BackgroundService
 
                 if (!string.IsNullOrWhiteSpace(item.BeforeImagePath))
                 {
-                    beforeImageHtml = "";
-
                     var imagePaths = item.BeforeImagePath
                         .Split(',', StringSplitOptions.RemoveEmptyEntries)
                         .Select(x => x.Trim())
                         .ToList();
 
+                    beforeImageHtml = "";
+
                     foreach (var imagePath in imagePaths)
                     {
                         string fullPath = Path.Combine(
-                            Directory.GetCurrentDirectory(),
-                            "wwwroot",
+                            _env.WebRootPath,
                             imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
                         );
 

@@ -22,6 +22,7 @@
               enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input type="hidden" id="checklistId" name="Id" value="0" />
+            <input type="hidden" id="existingBeforeImagesInput" name="ExistingBeforeImages" />
             <div class="form-row">
                 <div class="form-group">
                     <label for="date">Date</label>
@@ -694,57 +695,70 @@
         }
     }
 
-            let beforeSelectedFiles = [];
-            let isEditMode = false;
-            let existingBeforeImages = "";
+    let beforeSelectedFiles = [];
+    let existingBeforeImages = [];
+    let isEditMode = false;
 
     const beforeImageInput = document.getElementById("beforeImage");
 
-     if (beforeImageInput) {
-        beforeImageInput.addEventListener("change", function (e) {
-            const newFiles = Array.from(e.target.files);
+    beforeImageInput.addEventListener("change", function (e) {
+        const newFiles = Array.from(e.target.files);
 
-            newFiles.forEach(file => {
+        newFiles.forEach(file => {
             const exists = beforeSelectedFiles.some(x =>
                 x.name === file.name &&
                 x.size === file.size &&
                 x.lastModified === file.lastModified
             );
 
-        if (!exists) {
-            beforeSelectedFiles.push(file);
-        }
+            if (!exists) {
+                beforeSelectedFiles.push(file);
+            }
+        });
+
+        syncBeforeImageInput();
+        updateImagePreview();
     });
 
-            syncBeforeImageInput();
-            updateMultipleImagePreview();
-        });
-    }
-
     function syncBeforeImageInput() {
-        const fileInput = document.getElementById("beforeImage");
         const dataTransfer = new DataTransfer();
 
         beforeSelectedFiles.forEach(file => {
             dataTransfer.items.add(file);
         });
 
-        fileInput.files = dataTransfer.files;
+        beforeImageInput.files = dataTransfer.files;
+
+        document.getElementById("existingBeforeImagesInput").value =
+            existingBeforeImages.join(",");
     }
 
-    function updateMultipleImagePreview() {
+    function updateImagePreview() {
         const previewBox = document.getElementById("beforePreviewBox");
         const text = document.getElementById("beforeFileText");
 
         previewBox.innerHTML = "";
 
-        if (beforeSelectedFiles.length === 0) {
+        if (existingBeforeImages.length === 0 && beforeSelectedFiles.length === 0) {
             text.style.display = "inline";
             previewBox.appendChild(text);
-            document.getElementById("status").value = "";
             updateStatusAutomatically();
             return;
         }
+
+        existingBeforeImages.forEach((imageUrl, index) => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "inside-preview-item";
+
+            wrapper.innerHTML = `
+                <img src="${imageUrl}" onclick="openImageModal('${imageUrl}')" />
+                <button type="button" class="inside-preview-remove" onclick="removeExistingImage(${index})">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            previewBox.appendChild(wrapper);
+        });
 
         beforeSelectedFiles.forEach((file, index) => {
             const imageUrl = URL.createObjectURL(file);
@@ -754,9 +768,7 @@
 
             wrapper.innerHTML = `
                 <img src="${imageUrl}" onclick="openImageModal('${imageUrl}')" />
-                <button type="button"
-                        class="inside-preview-remove"
-                        onclick="removeMultipleImage(${index})">
+                <button type="button" class="inside-preview-remove" onclick="removeNewImage(${index})">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             `;
@@ -768,16 +780,20 @@
         updateStatusAutomatically();
     }
 
-    function removeMultipleImage(index) {
+    function removeExistingImage(index) {
+        existingBeforeImages.splice(index, 1);
+        updateImagePreview();
+    }
+
+    function removeNewImage(index) {
         beforeSelectedFiles.splice(index, 1);
         syncBeforeImageInput();
-        updateMultipleImagePreview();
+        updateImagePreview();
     }
 
     function captureImage(type) {
         const video = document.getElementById(type + "Video");
         const canvas = document.getElementById(type + "Canvas");
-
         const context = canvas.getContext("2d");
 
         canvas.width = video.videoWidth;
@@ -793,7 +809,7 @@
             );
 
             beforeSelectedFiles.push(file);
-            updateMultipleImagePreview();
+            updateImagePreview();
             closeCamera(type);
         }, "image/jpeg");
     }
@@ -914,9 +930,9 @@
             }
         });
 
-            const hasBeforeImage =
+        const hasBeforeImage =
         beforeSelectedFiles.length > 0 ||
-        (isEditMode && existingBeforeImages.trim() !== "");
+        existingBeforeImages.length > 0;
 
         if (statusField) {
             statusField.value = allFilled && hasBeforeImage ? "Ongoing" : "";
@@ -1035,8 +1051,8 @@
 
                 if (field.type === "file") {
                      if (
-                        beforeSelectedFiles.length === 0 &&
-                        (!isEditMode || existingBeforeImages.trim() === "")
+                            beforeSelectedFiles.length === 0 &&
+                            existingBeforeImages.length === 0
                     ) {
                         isValid = false;
                     }
@@ -1065,84 +1081,55 @@
     field.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-function prefillChecklistForm(row) {
+    function prefillChecklistForm(row) {
+
         isEditMode = true;
-    existingBeforeImages = row.dataset.images || "";
 
-    document.getElementById("checklistId").value = row.dataset.id;
-    document.getElementById("checklistForm").action = "/Checklist/UpdateChecklistMainRecord";
-    document.querySelector(".button-row .save-btn").innerText = "Update";
+        existingBeforeImages = row.dataset.images
+            ? row.dataset.images
+                .split(",")
+                .map(x => x.trim())
+                .filter(x => x !== "")
+            : [];
 
-    setFieldValue("date", row.dataset.date);
-    setFieldValue("project", row.dataset.project);
-    setFieldValue("line", row.dataset.line);
-    setFieldValue("section", row.dataset.section);
-    setFieldValue("stationName", row.dataset.station);
-    setFieldValue("issueType", row.dataset.issue);
-    setFieldValue("problemStatement", row.dataset.problem);
-    setFieldValue("frequency", row.dataset.frequency);
-    setFieldValue("issueSeverity", row.dataset.severity);
-    setFieldValue("category", row.dataset.category);
-    setFieldValue("dueDate", row.dataset.duedate);
-    setFieldValue("cmDri", row.dataset.cmdri);
-    setFieldValue("respectiveDepartment", row.dataset.department);
-    setFieldValue("appleDri", row.dataset.apple);
-    setFieldValue("typeOfAudit", row.dataset.audit);
-    setFieldValue("auditor", row.dataset.auditor);
+        beforeSelectedFiles = [];
 
-    const previewBox = document.getElementById("beforePreviewBox");
-    previewBox.innerHTML = "";
+        syncBeforeImageInput();
 
-        if (row.dataset.images) {
+        document.getElementById("checklistId").value = row.dataset.id;
 
-        previewBox.innerHTML = "";
+        document.getElementById("checklistForm").action =
+            "/Checklist/UpdateChecklistMainRecord";
 
-        row.dataset.images.split(',').forEach((img, index) => {
+        document.querySelector(".button-row .save-btn").innerText =
+            "Update";
 
-            const imageUrl = img.trim();
+        setFieldValue("date", row.dataset.date);
+        setFieldValue("project", row.dataset.project);
+        setFieldValue("line", row.dataset.line);
+        setFieldValue("section", row.dataset.section);
+        setFieldValue("stationName", row.dataset.station);
+        setFieldValue("issueType", row.dataset.issue);
+        setFieldValue("problemStatement", row.dataset.problem);
+        setFieldValue("frequency", row.dataset.frequency);
+        setFieldValue("issueSeverity", row.dataset.severity);
+        setFieldValue("category", row.dataset.category);
+        setFieldValue("dueDate", row.dataset.duedate);
+        setFieldValue("cmDri", row.dataset.cmdri);
+        setFieldValue("respectiveDepartment", row.dataset.department);
+        setFieldValue("appleDri", row.dataset.apple);
+        setFieldValue("typeOfAudit", row.dataset.audit);
+        setFieldValue("auditor", row.dataset.auditor);
 
-            if (!imageUrl) return;
+        updateImagePreview();
 
-            const wrapper = document.createElement("div");
-            wrapper.className = "inside-preview-item";
+        setFieldValue("status", row.dataset.status || "Ongoing");
 
-            wrapper.innerHTML = `
-                <img src="${imageUrl}"
-                     onclick="openImageModal('${imageUrl}')" />
-
-                <button type="button"
-                        class="inside-preview-remove">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            `;
-
-            const removeBtn = wrapper.querySelector(".inside-preview-remove");
-
-            removeBtn.addEventListener("click", function () {
-
-                wrapper.remove();
-
-                let currentImages = existingBeforeImages
-                    .split(',')
-                    .map(x => x.trim())
-                    .filter(x => x !== imageUrl);
-
-                existingBeforeImages = currentImages.join(',');
-
-                updateStatusAutomatically();
-            });
-
-            previewBox.appendChild(wrapper);
+        document.querySelector(".checklist-title").scrollIntoView({
+            behavior: "smooth",
+            block: "start"
         });
     }
-
-    setFieldValue("status", row.dataset.status || "Ongoing");
-
-    document.querySelector(".checklist-title").scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
-}
 </script>
 <script>
     let activeDropdownId = "";

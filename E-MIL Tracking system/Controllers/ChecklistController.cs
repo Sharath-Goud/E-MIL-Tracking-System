@@ -1169,6 +1169,7 @@ namespace E_MIL_Tracking_system.Controllers
             }
 
             ModelState.Remove("BeforeImages");
+            ModelState.Remove("ExistingBeforeImages");
 
             if (!ModelState.IsValid)
             {

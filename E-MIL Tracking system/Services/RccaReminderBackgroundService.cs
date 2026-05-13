@@ -169,7 +169,9 @@ namespace E_MIL_Tracking_system.Services
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.TypeOfAudit)}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.Auditor)}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
-                                        <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.Rcca)}</td>
+                                        <td style='border:1px solid #e5e7eb; padding:10px; color:#dc2626; font-weight:700;'>
+                                            @(string.IsNullOrWhiteSpace(item.Rcca) ? ""Pending RCCA"" : WebUtility.HtmlEncode(item.Rcca))
+                                        </td>
                                         <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>
                                             {WebUtility.HtmlEncode(item.Status)}
                                         </td>
