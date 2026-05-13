@@ -59,7 +59,7 @@ public class DueDateReminderService : BackgroundService
                 // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
                 // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
                 await emailService.SendEmailWithInlineImagesAsync(
-                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
+                    "Sharath_G@foxlink.com",
                     subject,
                     body,
                     beforeImagePath,

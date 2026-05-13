@@ -56,6 +56,11 @@ namespace E_MIL_Tracking_system.Controllers
             return View("~/Views/Checklist/A2Reports.cshtml",records);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateChecklistDto dto)
@@ -194,7 +199,7 @@ namespace E_MIL_Tracking_system.Controllers
             _emailQueue.QueueEmail(async cancellationToken =>
             {
                 await _emailService.SendEmailWithInlineImagesAsync(
-                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
+                    "Sharath_G@foxlink.com",
                     subject,
                     body,
                     beforeImageFullPath,
@@ -339,7 +344,7 @@ namespace E_MIL_Tracking_system.Controllers
             _emailQueue.QueueEmail(async cancellationToken =>
             {
                 await _emailService.SendEmailWithInlineImagesAsync(
-                    "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com",
+                    "Sharath_G@foxlink.com",
                     subject,
                     body,
                     beforeImageFullPath,
@@ -401,7 +406,7 @@ namespace E_MIL_Tracking_system.Controllers
             // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
             var recipients = new List<string>
             {
-                "Sharath_G@foxlink.com,Shilpa_M@foxlink.com,Sravani_M@foxlink.com"
+                "Sharath_G@foxlink.com"
             };
 
             await _service.ResetApprovalsAsync(id, recipients);
