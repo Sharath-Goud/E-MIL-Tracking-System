@@ -232,7 +232,24 @@ namespace E_MIL_Tracking_system.Services
             var list = new List<ChecklistResponseDto>();
             using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
             string query = @"
-                SELECT *
+                SELECT 
+                    Id,
+                    Date,
+                    Section,
+                    StationName,
+                    IssueType,
+                    ProblemStatement,
+                    Frequency,
+                    IssueSeverity,
+                    Category,
+                    DueDate,
+                    CmDri,
+                    AppleDri,
+                    TypeOfAudit,
+                    Auditor,
+                    BeforeImagePath,
+                    Rcca,
+                    Status
                 FROM ChecklistRecords
                 WHERE RccaUpdatedAt IS NOT NULL
                   AND DATEADD(HOUR, 4, RccaUpdatedAt) <= GETDATE()
@@ -261,6 +278,9 @@ namespace E_MIL_Tracking_system.Services
                     AppleDri = reader["AppleDri"]?.ToString(),
                     TypeOfAudit = reader["TypeOfAudit"]?.ToString(),
                     Auditor = reader["Auditor"]?.ToString(),
+                    BeforeImagePath = reader["BeforeImagePath"] == DBNull.Value
+                    ? null
+                    : reader["BeforeImagePath"].ToString(),
                     Rcca = reader["Rcca"]?.ToString(),
                     Status = reader["Status"]?.ToString()
                 });

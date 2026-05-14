@@ -113,11 +113,20 @@
                 </thead>
 
                 <tbody id="a2ReportTableBody">
-                    @if (Model != null && Model.Any())
+                    @{
+                        var completedRecords = Model?
+                        .Where(x =>
+                        !string.IsNullOrWhiteSpace(x.Rcca) &&
+                        !string.IsNullOrWhiteSpace(x.AfterImagePath)
+                        )
+                        .ToList();
+                    }
+
+                    @if (completedRecords != null && completedRecords.Any())
                     {
                         int serialNo = 1;
 
-                        foreach (var item in Model)
+                        foreach (var item in completedRecords)
                         {
                             <tr class="a2-report-row">
                                 <td>@serialNo</td>

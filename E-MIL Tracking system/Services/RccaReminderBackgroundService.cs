@@ -8,13 +8,16 @@ namespace E_MIL_Tracking_system.Services
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<RccaReminderBackgroundService> _logger;
+        private readonly IWebHostEnvironment _env;
 
         public RccaReminderBackgroundService(
-            IServiceScopeFactory scopeFactory,
-            ILogger<RccaReminderBackgroundService> logger)
+        IServiceScopeFactory scopeFactory,
+        ILogger<RccaReminderBackgroundService> logger,
+        IWebHostEnvironment env)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _env = env;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -74,8 +77,7 @@ namespace E_MIL_Tracking_system.Services
                     foreach (var imagePath in imagePaths)
                     {
                         string fullPath = Path.Combine(
-                            Directory.GetCurrentDirectory(),
-                            "wwwroot",
+                            _env.WebRootPath,
                             imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
                         );
 
@@ -94,8 +96,15 @@ namespace E_MIL_Tracking_system.Services
                     <img src='cid:{contentId}'
                          width='80'
                          height='60'
-                         style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />
+                         style='display:block;
+                                object-fit:cover;
+                                border-radius:6px;
+                                border:1px solid #d1d5db;' />
                 </div>";
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Before image file not found. Path: {Path}", fullPath);
                         }
                     }
 
@@ -144,7 +153,6 @@ namespace E_MIL_Tracking_system.Services
                                         <th style='border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
                                         <th style='border:1px solid #c4cfd4; padding:10px;'>Auditor</th>
                                         <th style='border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
-                                        <th style='border:1px solid #c4cfd4; padding:10px;'> RCCA </th>
                                         <th style='border:1px solid #c4cfd4; padding:10px;'>Status</th>
                                     </tr>
                                 </thead>
@@ -169,9 +177,6 @@ namespace E_MIL_Tracking_system.Services
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.TypeOfAudit)}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{WebUtility.HtmlEncode(item.Auditor)}</td>
                                         <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
-                                        <td style='border:1px solid #e5e7eb; padding:10px; color:#dc2626; font-weight:700;'>
-                                            @(string.IsNullOrWhiteSpace(item.Rcca) ? ""Pending RCCA"" : WebUtility.HtmlEncode(item.Rcca))
-                                        </td>
                                         <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>
                                             {WebUtility.HtmlEncode(item.Status)}
                                         </td>

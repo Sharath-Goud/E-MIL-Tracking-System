@@ -30,6 +30,7 @@ builder.Services.AddHostedService<BackgroundEmailService>();
 builder.Services.AddHostedService<RccaReminderBackgroundService>();
 builder.Services.AddHostedService<AfterImageReminderService>();
 builder.Services.AddHostedService<ApprovalReviewReminderService>();
+builder.Services.AddHostedService<A2WeeklyReportBackgroundService>();
 builder.Services.Configure<HostOptions>(options =>
 {
     options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
