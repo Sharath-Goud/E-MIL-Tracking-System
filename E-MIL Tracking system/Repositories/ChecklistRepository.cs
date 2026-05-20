@@ -70,7 +70,7 @@ namespace E_MIL_Tracking_system.Repositories
                 SELECT Id, [Date], WeekCode, [Month], Project, [Line], Section, StationName,
                        IssueType, ProblemStatement, Frequency, IssueSeverity, Category, DueDate,
                        CmDri, RespectiveDepartment, AppleDri, TypeOfAudit,
-                       Auditor, BeforeImagePath, Rcca, AfterImagePath, Status
+                       Auditor, BeforeImagePath, Rcca, AfterImagePath, Status, IsRccaAccepted
                 FROM ChecklistRecords
                 ORDER BY Id DESC";
 
@@ -103,7 +103,9 @@ namespace E_MIL_Tracking_system.Repositories
                     BeforeImagePath = reader["BeforeImagePath"]?.ToString(),
                     Rcca = reader["Rcca"]?.ToString(),
                     AfterImagePath = reader["AfterImagePath"]?.ToString(),
-                    Status = reader["Status"]?.ToString()
+                    Status = reader["Status"]?.ToString(),
+                    IsRccaAccepted = reader["IsRccaAccepted"] != DBNull.Value
+                            && Convert.ToBoolean(reader["IsRccaAccepted"])
                 });
             }
 
@@ -119,7 +121,7 @@ namespace E_MIL_Tracking_system.Repositories
         SELECT Id, [Date], WeekCode, [Month], Project, [Line], Section, StationName,
                IssueType, ProblemStatement, Frequency, IssueSeverity, Category, DueDate,
                CmDri, RespectiveDepartment, AppleDri, TypeOfAudit,
-               Auditor, BeforeImagePath, Rcca, AfterImagePath, Status
+               Auditor, BeforeImagePath, Rcca, AfterImagePath, Status, IsRccaAccepted
         FROM ChecklistRecords
         WHERE Id = @Id";
 
@@ -154,7 +156,9 @@ namespace E_MIL_Tracking_system.Repositories
                     BeforeImagePath = reader["BeforeImagePath"]?.ToString(),
                     Rcca = reader["Rcca"]?.ToString(),
                     AfterImagePath = reader["AfterImagePath"]?.ToString(),
-                    Status = reader["Status"]?.ToString()
+                    Status = reader["Status"]?.ToString(),
+                    IsRccaAccepted = reader["IsRccaAccepted"] != DBNull.Value
+                        && Convert.ToBoolean(reader["IsRccaAccepted"])
                 };
             }
 
@@ -538,6 +542,50 @@ namespace E_MIL_Tracking_system.Repositories
 
             cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
             cmd.Parameters.AddWithValue("@Email", email ?? "");
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<string?> GetApprovalStatusAsync(int checklistId, string email)
+        {
+            using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
+            string query = @"
+        SELECT 
+            CASE 
+                WHEN IsAccepted = 1 THEN 'Accepted'
+                WHEN IsRejected = 1 THEN 'Rejected'
+                ELSE 'Pending'
+            END
+        FROM ChecklistApprovalStatus
+        WHERE ChecklistId = @ChecklistId
+          AND LOWER(LTRIM(RTRIM(Email))) = LOWER(LTRIM(RTRIM(@Email)))";
+
+            using var cmd = new SqlCommand(query, con);
+
+            cmd.Parameters.AddWithValue("@ChecklistId", checklistId);
+            cmd.Parameters.AddWithValue("@Email", email ?? "");
+
+            var result = await cmd.ExecuteScalarAsync();
+
+            return result?.ToString();
+        }
+
+        public async Task UpdateRccaAcceptedAsync(int id, bool isAccepted)
+        {
+            using var con = _db.CreateConnection();
+            await con.OpenAsync();
+
+            string query = @"
+        UPDATE ChecklistRecords
+        SET IsRccaAccepted = @IsRccaAccepted
+        WHERE Id = @Id";
+
+            using var cmd = new SqlCommand(query, con);
+
+            cmd.Parameters.AddWithValue("@Id", id);
+            cmd.Parameters.AddWithValue("@IsRccaAccepted", isAccepted);
 
             await cmd.ExecuteNonQueryAsync();
         }

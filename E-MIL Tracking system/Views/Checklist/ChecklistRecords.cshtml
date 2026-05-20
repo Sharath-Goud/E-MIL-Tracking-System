@@ -119,6 +119,14 @@
                 </div>
 
             </form>
+            <div class="send-selected-row">
+                <button type="button"
+                        id="sendSelectedBtn"
+                        class="send-selected-btn"
+                        onclick="sendSelectedItems()">
+                    Send
+                </button>
+            </div>
             <div class="table-wrapper">
                 <table class="checklist-table" id="checklistTable">
                     <thead>
@@ -190,27 +198,67 @@
                                         }
                                     </td>
 
-                                    <td>
-                                        <span class="rcca-text">@(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")</span>
+                                    <td class="rcca-cell">
+                                        @{
+                                            bool isOngoing = string.Equals(
+                                            item.Status?.Trim(),
+                                            "Ongoing",
+                                            StringComparison.OrdinalIgnoreCase
+                                            );
+
+                                            bool showRccaCheckbox =
+                                            !string.IsNullOrWhiteSpace(item.Rcca)
+                                            && isOngoing;
+                                        }
+
+                                        @if (showRccaCheckbox)
+                                        {
+                                            <input type="checkbox"
+                                                   class="row-check rcca-check"
+                                                   data-type="rcca"
+                                                   data-id="@item.Id"
+                                                   title="RCCA Updated" />
+                                        }
+
+                                        <span class="rcca-text">
+                                            @(!string.IsNullOrWhiteSpace(item.Rcca) ? item.Rcca : "-")
+                                        </span>
                                     </td>
 
                                     <td onclick="event.stopPropagation();">
                                         @if (!string.IsNullOrWhiteSpace(item.AfterImagePath))
                                         {
-                                            <img src="@item.AfterImagePath"
-                                                 class="table-preview-img clickable-img"
-                                                 alt="After Image"
-                                                 onclick="openImageModal(this.src)" />
+                                            bool showAfterImageCheckbox = string.Equals(
+                                            item.Status?.Trim(),
+                                            "Ongoing",
+                                            StringComparison.OrdinalIgnoreCase
+                                            );
+
+                                            <div class="after-image-box">
+                                                @if (showAfterImageCheckbox)
+                                                {
+                                                    <input type="checkbox"
+                                                           class="row-check after-check"
+                                                           data-type="after"
+                                                           data-id="@item.Id"
+                                                           title="After Image Uploaded" />
+                                                }
+
+                                                <img src="@item.AfterImagePath"
+                                                     class="table-preview-img clickable-img"
+                                                     alt="After Image"
+                                                     onclick="openImageModal(this.src)" />
+                                            </div>
                                         }
                                         else
                                         {
-                                            var isRccaCompleted = !string.IsNullOrWhiteSpace(item.Rcca);
+                                            var isRccaCompleted = item.IsRccaAccepted;
                                             <div class="after-inline-box @(isRccaCompleted ? "" : "after-disabled-box")">
 
                                                 @if (!isRccaCompleted)
                                                 {
                                                     <div class="rcca-lock-message">
-                                                        Enter RCCA first
+                                                        RCCA approval pending
                                                     </div>
                                                 }
 
@@ -581,7 +629,7 @@
             pagination.appendChild(makeBtn("← Prev", "page-nav-btn", currentPage === 1, function () {
                 currentPage--;
                 showPage();
-            }));
+            })); 
 
             getPages(totalPages).forEach(page => {
                 if (page === "...") {
@@ -622,23 +670,44 @@
 
         function getPages(totalPages) {
             const pages = [];
+            if (totalPages <= 4) {
 
-            if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i);
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+
+                return pages;
+            }
+
+            if (currentPage <= 2) {
+
+                pages.push(1, 2, 3, 4);
+                pages.push("...");
+                pages.push(totalPages);
+
+                return pages;
+            }
+
+            if (currentPage >= totalPages - 1) {
+
+                pages.push(1);
+                pages.push("...");
+
+                for (let i = totalPages - 3; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+
                 return pages;
             }
 
             pages.push(1);
+            pages.push("...");
 
-            if (currentPage > 4) pages.push("...");
+            pages.push(currentPage - 1);
+            pages.push(currentPage);
+            pages.push(currentPage + 1);
 
-            const start = Math.max(2, currentPage - 1);
-            const end = Math.min(totalPages - 1, currentPage + 1);
-
-            for (let i = start; i <= end; i++) pages.push(i);
-
-            if (currentPage < totalPages - 3) pages.push("...");
-
+            pages.push("...");
             pages.push(totalPages);
 
             return pages;
@@ -712,6 +781,95 @@
             closeInlineCamera(id);
             form.submit();
         }, "image/jpeg");
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const sendBtn = document.getElementById("sendSelectedBtn");
+
+        function updateSendButton() {
+            const selectedRcca = document.querySelectorAll(".rcca-check:checked").length;
+            const selectedAfter = document.querySelectorAll(".after-check:checked").length;
+
+            if (selectedRcca > 0 && selectedAfter === 0) {
+                sendBtn.textContent = "Send RCCA";
+                sendBtn.style.display = "inline-flex";
+            }
+            else if (selectedAfter > 0 && selectedRcca === 0) {
+                sendBtn.textContent = "Send After Images";
+                sendBtn.style.display = "inline-flex";
+            }
+            else if (selectedRcca > 0 && selectedAfter > 0) {
+                sendBtn.textContent = "Send Selected";
+                sendBtn.style.display = "inline-flex";
+            }
+            else {
+                sendBtn.style.display = "none";
+            }
+        }
+
+        document.querySelectorAll(".row-check").forEach(function (checkbox) {
+            checkbox.addEventListener("click", function (event) {
+                event.stopPropagation();
+            });
+
+            checkbox.addEventListener("change", updateSendButton);
+        });
+
+        updateSendButton();
+    });
+
+        function sendSelectedItems() {
+        const selectedRccaIds = Array.from(document.querySelectorAll(".rcca-check:checked"))
+            .map(x => parseInt(x.dataset.id));
+
+        const selectedAfterIds = Array.from(document.querySelectorAll(".after-check:checked"))
+            .map(x => parseInt(x.dataset.id));
+
+        let sendType = "";
+        let selectedIds = [];
+
+        if (selectedRccaIds.length > 0 && selectedAfterIds.length === 0) {
+            sendType = "RCCA";
+            selectedIds = selectedRccaIds;
+        }
+        else if (selectedAfterIds.length > 0 && selectedRccaIds.length === 0) {
+            sendType = "AFTER_IMAGE";
+            selectedIds = selectedAfterIds;
+        }
+        else {
+            showToast("Please select only RCCA checkboxes or only After Image checkboxes.", "linear-gradient(to right, #ff5f6d, #ffc371)");
+            return;
+        }
+
+        fetch('/Checklist/SendSelectedChecklistMail', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({
+                ids: selectedIds,
+                type: sendType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "linear-gradient(to right, #00b09b, #96c93d)");
+
+                document.querySelectorAll(".row-check:checked").forEach(x => {
+                    x.checked = false;
+                });
+
+                document.getElementById("sendSelectedBtn").style.display = "none";
+            } else {
+                showToast(data.message, "linear-gradient(to right, #ff5f6d, #ffc371)");
+            }
+        })
+        .catch(() => {
+            showToast("Something went wrong while sending mail.", "linear-gradient(to right, #ff5f6d, #ffc371)");
+        });
     }
 </script>
 
@@ -1968,4 +2126,80 @@
     }
 
     }
+
+    .rcca-cell,
+    .after-image-box {
+        position: relative !important;
+        min-height: 58px;
+        padding-top: 22px !important;
+    }
+
+    .top-right-check {
+        position: absolute;
+        top: 5px;
+        right: 6px;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #22c55e;
+        z-index: 5;
+    }
+
+    .rcca-cell .rcca-text {
+        display: block;
+        padding-top: 4px;
+    }
+
+    .after-image-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .row-check {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #22c55e;
+        z-index: 99;
+    }
+
+    .send-selected-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin: 0 0 14px 0;
+    }
+
+    .send-selected-btn {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        min-width: 170px;
+        height: 44px;
+        padding: 0 24px;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        background: #6366f1;
+        color: #f8fafc;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(91, 33, 182, 0.22);
+        transition: all 0.35s ease;
+    }
+
+        .send-selected-btn:hover {
+            background: #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(91, 33, 182, 0.30);
+        }
+
+        .send-selected-btn:active {
+            transform: scale(0.98);
+        }
 </style>

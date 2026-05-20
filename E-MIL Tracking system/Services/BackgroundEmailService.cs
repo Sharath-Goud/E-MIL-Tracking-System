@@ -20,11 +20,19 @@
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var emailTask = await _emailQueue.DequeueAsync(stoppingToken);
-
                 try
                 {
-                    await emailTask(stoppingToken);
+                    var emailTask = await _emailQueue.DequeueAsync(stoppingToken);
+
+                    if (emailTask != null)
+                    {
+                        await emailTask(stoppingToken);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Background email service is stopping.");
+                    break;
                 }
                 catch (Exception ex)
                 {

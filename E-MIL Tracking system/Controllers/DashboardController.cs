@@ -155,7 +155,7 @@ namespace E_MIL_Tracking_system.Controllers
                     validRecords.Count(x =>
                         x.Date.HasValue &&
                         x.Date.Value.Date == chartDate &&
-                        string.Equals(x.IssueType?.Trim(), "Repeated", StringComparison.OrdinalIgnoreCase) && 
+                        string.Equals(x.IssueType?.Trim(), "Repeated", StringComparison.OrdinalIgnoreCase) &&
                         NormalizeCategory(x.Category) == category
                     )
                 ).ToList()
@@ -376,8 +376,35 @@ namespace E_MIL_Tracking_system.Controllers
                 var findingHr = Enumerable.Repeat("", dates.Count).ToList();
                 findingHr[findingHr.Count - 1] = findingPerHour;
 
+                decimal rValue = 0;
+
+                if (weekIndex > 1)
+                {
+                    decimal currentFindingPerHour = 0;
+                    decimal previousFindingPerHour = 0;
+
+                    decimal.TryParse(findingPerHour, out currentFindingPerHour);
+
+                    var previousRow = auditTableRows.LastOrDefault();
+
+                    if (previousRow != null)
+                    {
+                        var previousFindingValue = previousRow.FindingHr.LastOrDefault();
+
+                        decimal.TryParse(previousFindingValue, out previousFindingPerHour);
+
+                        if (currentFindingPerHour > 0 && previousFindingPerHour > 0)
+                        {
+                            rValue = Math.Abs(currentFindingPerHour - previousFindingPerHour);
+
+                            rValue = Math.Floor(rValue * 10) / 10;
+                        }
+                    }
+                }
+
                 var rValues = Enumerable.Repeat("", dates.Count).ToList();
-                rValues[rValues.Count - 1] = "0.0";
+
+                rValues[rValues.Count - 1] = rValue.ToString("0.0");
 
                 auditTableRows.Add(new E_MIL_Tracking_system.DTOs.AuditTableRowDto
                 {

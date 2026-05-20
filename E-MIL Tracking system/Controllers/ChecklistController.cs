@@ -295,150 +295,368 @@ namespace E_MIL_Tracking_system.Controllers
 
             await _service.UpdateChecklistRecordAsync(dto);
 
-            var savedRecord = await _service.GetByIdAsync(dto.Id);
-
-            if (savedRecord == null)
-            {
-                TempData["ErrorMessage"] = "RCCA updated, but mail data not found.";
-                return RedirectToAction(nameof(ChecklistRecords));
-            }
-
-            var inlineImages = new List<InlineEmailImage>();
-            string beforeImageHtml = "-";
-
-            if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
-            {
-                var imagePaths = savedRecord.BeforeImagePath
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim())
-                    .ToList();
-
-                beforeImageHtml = "";
-
-                foreach (var imagePath in imagePaths)
-                {
-                    string fullPath = Path.Combine(
-                        _env.WebRootPath,
-                        imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                    );
-
-                    if (System.IO.File.Exists(fullPath))
-                    {
-                        string contentId = "before_" + Guid.NewGuid().ToString("N");
-
-                        inlineImages.Add(new InlineEmailImage
-                        {
-                            ContentId = contentId,
-                            FilePath = fullPath
-                        });
-
-                        beforeImageHtml += $@"
-                <div style='display:inline-block; margin:4px;'>
-                    <img src='cid:{contentId}'
-                         width='80'
-                         height='60'
-                         style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />
-                </div>";
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(beforeImageHtml))
-                {
-                    beforeImageHtml = "-";
-                }
-            }
-
-            string subject = $"MIL Audit RCCA Updated {DateTime.Now:dd-MM-yyyy}";
-
-            string body = $@"
-            <html>
-            <body style='font-family:Arial, sans-serif; background:#f4f6f8; padding:20px;'>
-
-                <div style='background:#ffffff; padding:20px; border-radius:12px;'>
-
-                    <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
-                        MIL Audit RCCA Updated
-                    </h2>
-
-                    <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
-
-                    <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
-
-                    <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
-                        RCCA has been updated for the below MIL audit point. Please review the corrective action details.
-                    </p>
-
-                    <table cellpadding='0' cellspacing='0'
-                           style='border-collapse:collapse; width:100%; min-width:1600px; font-size:12px; text-align:center;'>
-
-                        <thead>
-                            <tr style='background:#d7e5e1; color:#111827;'>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Section</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Type</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Category</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>RCCA</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Starting Date</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
-                                <th style='border:1px solid #c4cfd4; padding:10px;'>Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <tr>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>1</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Section}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.StationName}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.IssueType}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; max-width:260px; word-wrap:break-word; white-space:normal; line-height:1.6;'>
-                                    {savedRecord.ProblemStatement}
-                                </td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Frequency}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.IssueSeverity}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Category}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; font-weight:600;'>
-                                    {(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}
-                                </td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.CmDri}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.AppleDri}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.TypeOfAudit}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
-                                <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>{savedRecord.Status}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                </div>
-            </body>
-            </html>";
-
-
-            //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
-            // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
-            // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
-            _emailQueue.QueueEmail(async cancellationToken =>
-            {
-                await _emailService.SendEmailWithMultipleInlineImagesAsync(
-                    "Sharath_G@foxlink.com",
-                    subject,
-                    body,
-                    inlineImages
-                );
-            });
-
             TempData["SuccessMessage"] = "RCCA updated successfully.";
             return RedirectToAction(nameof(ChecklistRecords));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendSelectedChecklistMail([FromBody] SendSelectedChecklistMailDto dto)
+        {
+            if (dto == null || dto.Ids == null || !dto.Ids.Any())
+            {
+                return Json(new { success = false, message = "Please select at least one record." });
+            }
+
+            var records = new List<ChecklistResponseDto>();
+
+            foreach (var id in dto.Ids.Distinct())
+            {
+                var record = await _service.GetByIdAsync(id);
+
+                if (record != null)
+                {
+                    records.Add(record);
+                }
+            }
+
+            if (!records.Any())
+            {
+                return Json(new { success = false, message = "Selected records not found." });
+            }
+
+            if (dto.Type == "RCCA")
+            {
+                await SendSelectedRccaMailAsync(records);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Selected RCCA records mail sent successfully."
+                });
+            }
+
+            if (dto.Type == "AFTER_IMAGE")
+            {
+                await SendSelectedAfterImageMailAsync(records);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Selected After Image records mail sent successfully."
+                });
+            }
+
+            return Json(new { success = false, message = "Invalid mail type." });
+        }
+
+        private async Task SendSelectedRccaMailAsync(List<ChecklistResponseDto> records)
+        {
+            var recipients = new List<string>
+    {
+        "Sharath_G@foxlink.com",
+        "Charitha_J@foxlink.com"
+    };
+
+            foreach (var record in records)
+            {
+                await _service.ResetApprovalsAsync(record.Id, recipients);
+            }
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+            string subject = $"E-MIL Audit RCCA Updated {DateTime.Now:dd-MM-yyyy}";
+
+            foreach (var recipient in recipients)
+            {
+                var inlineImages = new List<InlineEmailImage>();
+                int serialNo = 1;
+                string rowsHtml = "";
+
+                foreach (var record in records)
+                {
+                    string encodedEmail = Uri.EscapeDataString(recipient);
+
+                    string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={record.Id}&email={encodedEmail}&approvalType=RCCA";
+                    string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={record.Id}&email={encodedEmail}&approvalType=RCCA";
+
+                    string beforeImageHtml = BuildInlineImages(record.BeforeImagePath, inlineImages, "before");
+
+                    rowsHtml += $@"
+            <tr> 
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{serialNo}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Section}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.StationName}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.IssueType}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; max-width:260px; word-wrap:break-word; white-space:normal; line-height:1.6;'>{record.ProblemStatement}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Frequency}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.IssueSeverity}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Category}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; font-weight:600;'>{(string.IsNullOrWhiteSpace(record.Rcca) ? "-" : record.Rcca)}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Date?.ToString("dd-MM-yyyy")}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.DueDate?.ToString("dd-MM-yyyy")}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.CmDri}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.AppleDri}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.TypeOfAudit}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>{record.Status}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>
+                    <a href='{approveUrl}'
+                       style='display:inline-block; padding:10px 16px; background:#22c55e; color:#ffffff; text-decoration:none; font-weight:bold; border-radius:8px;'>
+                        ACCEPT
+                    </a>
+                </td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>
+                    <a href='{rejectUrl}'
+                       style='display:inline-block; padding:10px 16px; background:#ef4444; color:#ffffff; text-decoration:none; font-weight:bold; border-radius:8px;'>
+                        REJECT
+                    </a>
+                </td>
+            </tr>";
+
+                    serialNo++;
+                }
+
+                string body = $@"
+        <html>
+        <body style='font-family:Arial, sans-serif; background:#f4f6f8; padding:20px;'>
+            <div style='background:#ffffff; padding:20px; border-radius:12px;'>
+
+                <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
+                    E-MIL Audit RCCA Updated
+                </h2>
+
+                <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
+                <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
+
+                <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
+                    RCCA has been updated for the below selected MIL audit points.
+                    Please review the corrective action details and take action.
+                </p>
+
+                <table cellpadding='0' cellspacing='0'
+                       style='border-collapse:collapse; width:100%; min-width:1900px; font-size:12px; text-align:center;'>
+                    <thead>
+                        <tr style='background:#d7e5e1; color:#111827;'>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Section</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Type</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Category</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>RCCA</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Starting Date</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Status</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Accept</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Reject</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rowsHtml}
+                    </tbody>
+                </table>
+
+                <p style='margin-top:20px; font-size:13px; color:#6b7280;'>
+                    This response is tracked for: {recipient}
+                </p>
+            </div>
+        </body>
+        </html>";
+
+                _emailQueue.QueueEmail(async cancellationToken =>
+                {
+                    await _emailService.SendEmailWithMultipleInlineImagesAsync(
+                        recipient,
+                        subject,
+                        body,
+                        inlineImages
+                    );
+                });
+            }
+        }
+
+
+        private async Task SendSelectedAfterImageMailAsync(List<ChecklistResponseDto> records)
+        {
+            var recipients = new List<string>
+            {
+                "Sharath_G@foxlink.com"
+            };
+
+            foreach (var record in records)
+            {
+                await _service.ResetApprovalsAsync(record.Id, recipients);
+            }
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+            string subject = $"MIL Audit Review Required - {DateTime.Now:dd-MM-yyyy}";
+
+            foreach (var recipient in recipients)
+            {
+                var inlineImages = new List<InlineEmailImage>();
+                int serialNo = 1;
+                string rowsHtml = "";
+
+                foreach (var record in records)
+                {
+                    string encodedEmail = Uri.EscapeDataString(recipient);
+
+                    string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={record.Id}&email={encodedEmail}&approvalType=AFTER_IMAGE";
+                    string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={record.Id}&email={encodedEmail}&approvalType=AFTER_IMAGE";
+
+                    string beforeImageHtml = BuildInlineImages(record.BeforeImagePath, inlineImages, "before");
+                    string afterImageHtml = BuildInlineImages(record.AfterImagePath, inlineImages, "after");
+
+                    rowsHtml += $@"
+            <tr>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{serialNo}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Section}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.StationName}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.IssueType}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; max-width:260px; word-wrap:break-word; white-space:normal; line-height:1.6;'>{record.ProblemStatement}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Frequency}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.IssueSeverity}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Category}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; font-weight:600;'>{(string.IsNullOrWhiteSpace(record.Rcca) ? "-" : record.Rcca)}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.Date?.ToString("dd-MM-yyyy")}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.DueDate?.ToString("dd-MM-yyyy")}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.CmDri}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.AppleDri}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{record.TypeOfAudit}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{beforeImageHtml}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>{afterImageHtml}</td>
+                <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>Ongoing</td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>
+                    <a href='{approveUrl}'
+                       style='display:inline-block; padding:10px 16px; background:#22c55e; color:#ffffff; text-decoration:none; font-weight:bold; border-radius:8px;'>
+                        ACCEPT
+                    </a>
+                </td>
+                <td style='border:1px solid #e5e7eb; padding:10px;'>
+                    <a href='{rejectUrl}'
+                       style='display:inline-block; padding:10px 16px; background:#ef4444; color:#ffffff; text-decoration:none; font-weight:bold; border-radius:8px;'>
+                        REJECT
+                    </a>
+                </td>
+            </tr>";
+
+                    serialNo++;
+                }
+
+                string body = $@"
+        <html>
+        <body style='font-family:Arial, sans-serif; background:#f4f6f8; padding:20px;'>
+            <div style='background:#ffffff; padding:20px; border-radius:12px;'>
+                <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
+                    MIL Audit Review Required
+                </h2>
+
+                <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
+                <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
+
+                <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
+                    After Image has been uploaded successfully for the below selected audit points.
+                    Please review and take action.
+                </p>
+
+                <table cellpadding='0' cellspacing='0'
+                       style='border-collapse:collapse; width:100%; min-width:1900px; font-size:12px; text-align:center;'>
+                    <thead>
+                        <tr style='background:#d7e5e1; color:#111827;'>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Section</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Type</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Category</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>RCCA</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Starting Date</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>After Image</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Status</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Accept</th>
+                            <th style='border:1px solid #c4cfd4; padding:10px;'>Reject</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rowsHtml}
+                    </tbody>
+                </table>
+
+                <p style='margin-top:20px; font-size:13px; color:#6b7280;'>
+                    This response is tracked for: {recipient}
+                </p>
+            </div>
+        </body>
+        </html>";
+
+                _emailQueue.QueueEmail(async cancellationToken =>
+                {
+                    await _emailService.SendEmailWithMultipleInlineImagesAsync(
+                        recipient,
+                        subject,
+                        body,
+                        inlineImages
+                    );
+                });
+            }
+        }
+
+
+        private string BuildInlineImages(
+    string imagePaths,
+    List<InlineEmailImage> inlineImages,
+    string prefix)
+        {
+            if (string.IsNullOrWhiteSpace(imagePaths))
+            {
+                return "-";
+            }
+
+            string imageHtml = "";
+
+            foreach (var imagePath in imagePaths.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                string fullPath = Path.Combine(
+                    _env.WebRootPath,
+                    imagePath.Trim().TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+                );
+
+                if (System.IO.File.Exists(fullPath))
+                {
+                    string contentId = prefix + "_" + Guid.NewGuid().ToString("N");
+
+                    inlineImages.Add(new InlineEmailImage
+                    {
+                        ContentId = contentId,
+                        FilePath = fullPath
+                    });
+
+                    imageHtml += $@"
+            <div style='display:inline-block; margin:4px;'>
+                <img src='cid:{contentId}'
+                     width='80'
+                     height='60'
+                     style='object-fit:cover;border-radius:6px;border:1px solid #d1d5db;' />
+            </div>";
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(imageHtml) ? "-" : imageHtml;
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -471,175 +689,8 @@ namespace E_MIL_Tracking_system.Controllers
             }
 
             await _service.UploadAfterImageAsync(id, afterImage, _env.WebRootPath);
+
             await _service.UpdateStatusAsync(id, "Ongoing");
-
-            var savedRecord = await _service.GetByIdAsync(id);
-
-            if (savedRecord == null)
-            {
-                TempData["ErrorMessage"] = "Record not found after image upload.";
-                return RedirectToAction(nameof(ChecklistRecords));
-            }
-            //Ipqc1_Tpt@foxlink.com, Maintenence_Tpt@foxlink.com, Aravindhan_S@foxlink.com, Balaji_K@foxlink.com, Production_Tpt@foxlink.com
-            // Thanuja_C@foxlink.com, Jeevankumar_V@foxlink.com, Harish_K@foxlink.com, Rokeshkumar_D@foxlink.com
-            // Satheeshkumar_R@foxlink.com, Poojith_S@foxlink.com, Vinodh_S@foxlink.com, Ambethkar_M@foxlink.com
-            var recipients = new List<string>
-            {
-                "Sharath_G@foxlink.com"
-            };
-
-            await _service.ResetApprovalsAsync(id, recipients);
-
-            string baseUrl = $"{Request.Scheme}://{Request.Host}";
-            string subject = $"MIL Audit Review Required - {DateTime.Now:dd-MM-yyyy}";
-
-            string? beforeImagePath = null;
-            string? afterImagePath = null;
-
-            if (!string.IsNullOrWhiteSpace(savedRecord.BeforeImagePath))
-            {
-                var firstBeforeImage = savedRecord.BeforeImagePath
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim())
-                    .FirstOrDefault();
-
-                if (!string.IsNullOrWhiteSpace(firstBeforeImage))
-                {
-                    beforeImagePath = Path.Combine(
-                        _env.WebRootPath,
-                        firstBeforeImage.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                    );
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(savedRecord.AfterImagePath))
-            {
-                afterImagePath = Path.Combine(
-                    _env.WebRootPath,
-                    savedRecord.AfterImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
-                );
-            }
-
-            foreach (var recipient in recipients)
-            {
-                string encodedEmail = Uri.EscapeDataString(recipient);
-
-                string approveUrl = $"{baseUrl}/Checklist/ApproveFromEmail?id={id}&email={encodedEmail}";
-                string rejectUrl = $"{baseUrl}/Checklist/RejectFromEmail?id={id}&email={encodedEmail}";
-
-                string body = $@"
-                <html>
-                <body style='font-family:Arial, sans-serif; background:#f4f6f8; padding:20px;'>
-                    <div style='background:#ffffff; padding:20px; border-radius:12px;'>
-
-                        <h2 style='margin:0 0 14px; color:#111827; font-size:20px;'>
-                            MIL Audit Review Required
-                        </h2>
-
-                        <p style='margin:0 0 10px; font-size:14px;'>Hi Team,</p>
-                        <p style='margin:0 0 10px; font-size:14px;'>Good day.</p>
-
-                        <p style='margin:0 0 20px; font-size:14px; line-height:1.6;'>
-                            After Image has been uploaded successfully for the below audit point.
-                            Please review and take action.
-                        </p>
-
-                        <table cellpadding='0' cellspacing='0'
-                               style='border-collapse:collapse; width:100%; min-width:1600px; font-size:12px; text-align:center;'>
-
-                            <thead>
-                                <tr style='background:#d7e5e1; color:#111827;'>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>S.NO</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Section</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Station Name</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Type</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Problem Statement</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Frequency</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Issue Severity</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Category</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>RCCA</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Starting Date</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Due Date</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>CM DRI</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Apple DRI</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Type of Audit</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Before Image</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>After Image</th>
-                                    <th style='border:1px solid #c4cfd4; padding:10px;'>Status</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                <tr>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>1</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Section}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.StationName}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.IssueType}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; max-width:260px; word-wrap:break-word; white-space:normal; line-height:1.6;'>
-                                          {savedRecord.ProblemStatement}
-                                    </td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Frequency}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.IssueSeverity}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Category}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px; text-align:left; font-weight:600;'>
-                                          {(string.IsNullOrWhiteSpace(savedRecord.Rcca) ? "-" : savedRecord.Rcca)}
-                                    </td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.Date?.ToString("dd-MM-yyyy")}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.DueDate?.ToString("dd-MM-yyyy")}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.CmDri}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.AppleDri}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>{savedRecord.TypeOfAudit}</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>BEFORE_IMAGE_PLACEHOLDER</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px;'>AFTER_IMAGE_PLACEHOLDER</td>
-                                    <td style='border:1px solid #e5e7eb; padding:10px; font-weight:700; color:#b45309;'>Ongoing</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <table role='presentation' style='margin-top:24px;'>
-                            <tr>
-                                <td style='background:#22c55e; border-radius:8px;'>
-                                    <a href='{approveUrl}'
-                                       style='display:inline-block; padding:14px 26px; color:#ffffff; text-decoration:none; font-weight:bold;'>
-                                        ACCEPT
-                                    </a>
-                                </td>
-
-                                <td style='width:16px;'></td>
-
-                                <td style='background:#ef4444; border-radius:8px;'>
-                                    <a href='{rejectUrl}'
-                                       style='display:inline-block; padding:14px 26px; color:#ffffff; text-decoration:none; font-weight:bold;'>
-                                        REJECT
-                                    </a>
-                                </td>
-                            </tr>
-                        </table>
-
-                        <p style='margin-top:20px; font-size:13px; color:#6b7280;'>
-                            This response is tracked for: {recipient}
-                        </p>
-
-                    </div>
-                </body>
-                </html>";
-
-                try
-                {
-                    await _emailService.SendEmailWithInlineImagesAsync1(
-                        recipient,
-                        subject,
-                        body,
-                        beforeImagePath,
-                        afterImagePath
-                    );
-                }
-                catch (Exception ex)
-                {
-                    TempData["ErrorMessage"] = "After image uploaded, but mail failed: " + ex.Message;
-                    return RedirectToAction(nameof(ChecklistRecords));
-                }
-            }
 
             TempData["SuccessMessage"] = "After Image uploaded successfully.";
             return RedirectToAction(nameof(ChecklistRecords));
@@ -654,7 +705,7 @@ namespace E_MIL_Tracking_system.Controllers
             string subject = $"MIL Audit {actionStatus} - {DateTime.Now:dd-MM-yyyy}";
 
             string recipients =
-                "Sharath_G@foxlink.com";
+                "Sharath_G@foxlink.com,Charitha_J@foxlink.com";
             // "Sharath_G@foxlink.com,Ipqc1_Tpt@foxlink.com,Maintenence_Tpt@foxlink.com";
 
             string? beforeImagePath = null;
@@ -765,7 +816,7 @@ namespace E_MIL_Tracking_system.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ApproveFromEmail(int id, string email)
+        public async Task<IActionResult> ApproveFromEmail(int id, string email, string? approvalType)
         {
             try
             {
@@ -777,18 +828,42 @@ namespace E_MIL_Tracking_system.Controllers
                 }
 
                 email = Uri.UnescapeDataString(email).Trim();
+                approvalType = approvalType?.Trim().ToUpper();
+                var currentStatus = await _service.GetApprovalStatusAsync(id, email);
+
+                if (currentStatus == "Accepted")
+                {
+                    ViewBag.IsSuccess = true;
+                    ViewBag.Message = "Already Accepted.";
+                    return View("~/Views/Checklist/ApprovalResult.cshtml");
+                }
+
+                if (currentStatus == "Rejected")
+                {
+                    ViewBag.IsSuccess = false;
+                    ViewBag.Message = "Already Rejected. You cannot accept now.";
+                    return View("~/Views/Checklist/ApprovalResult.cshtml");
+                }
 
                 await _service.MarkAcceptedAsync(id, email);
 
                 bool allAccepted = await _service.AreAllAcceptedAsync(id);
 
-                if (allAccepted)
+                if (approvalType == "RCCA")
                 {
-                    await _service.UpdateStatusAsync(id, "Closed");
+                    await _service.UpdateRccaAcceptedAsync(id, true);
+                    await _service.UpdateStatusAsync(id, "Ongoing");
                 }
                 else
                 {
-                    await _service.UpdateStatusAsync(id, "Ongoing");
+                    if (allAccepted)
+                    {
+                        await _service.UpdateStatusAsync(id, "Closed");
+                    }
+                    else
+                    {
+                        await _service.UpdateStatusAsync(id, "Ongoing");
+                    }
                 }
 
                 var record = await _service.GetByIdAsync(id);
@@ -799,25 +874,27 @@ namespace E_MIL_Tracking_system.Controllers
 
                     try
                     {
+                        string acceptMailMessage = approvalType == "RCCA"
+                            ? "The RCCA details have been reviewed and accepted. The corrective action explanation is verified and approved. Please proceed with uploading the After Image evidence."
+                            : "The actions were cross-verified on the line, no issues were found, and supporting images have been uploaded as evidence.";
+
                         await SendAcceptRejectMailAsync(
                             record,
                             email,
-                            "ACCEPTED",
-                            "The actions were cross-verified on the line, no issues were found, and supporting images have been uploaded as evidence"
+                            approvalType == "RCCA" ? "RCCA ACCEPTED" : "ACCEPTED",
+                            acceptMailMessage
                         );
                     }
                     catch (Exception mailEx)
                     {
-                        ViewBag.IsSuccess = true;
-                        ViewBag.Message = "Approved successfully, but mail failed: " + mailEx.Message;
-                        return View("~/Views/Checklist/ApprovalResult.cshtml");
+                        
                     }
                 }
 
                 ViewBag.IsSuccess = true;
-                ViewBag.Message = allAccepted
-                    ? "The audit checklist has been successfully reviewed and approved. All verification activities were completed successfully."
-                    : "The audit checklist has been successfully reviewed. Thank you for your response and support.";
+                ViewBag.Message = approvalType == "RCCA"
+                    ? "RCCA Approved Successfully."
+                    : "After Image Approved Successfully.";
 
                 return View("~/Views/Checklist/ApprovalResult.cshtml");
             }
@@ -830,7 +907,7 @@ namespace E_MIL_Tracking_system.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RejectFromEmail(int id, string email)
+        public async Task<IActionResult> RejectFromEmail(int id, string email, string approvalType)
         {
             try
             {
@@ -842,8 +919,29 @@ namespace E_MIL_Tracking_system.Controllers
                 }
 
                 email = Uri.UnescapeDataString(email).Trim();
+                approvalType = approvalType?.Trim().ToUpper();
+
+                var currentStatus = await _service.GetApprovalStatusAsync(id, email);
+
+                if (currentStatus == "Rejected")
+                {
+                    ViewBag.IsSuccess = false;
+                    ViewBag.Message = "Already Rejected.";
+                    return View("~/Views/Checklist/ApprovalResult.cshtml");
+                }
+
+                if (currentStatus == "Accepted")
+                {
+                    ViewBag.IsSuccess = true;
+                    ViewBag.Message = "Already Accepted. You cannot reject now.";
+                    return View("~/Views/Checklist/ApprovalResult.cshtml");
+                }
 
                 await _service.MarkRejectedAsync(id, email);
+                if (approvalType == "RCCA")
+                {
+                    await _service.UpdateRccaAcceptedAsync(id, false);
+                }
                 await _service.UpdateStatusAsync(id, "Ongoing");
 
                 var record = await _service.GetByIdAsync(id);
@@ -854,24 +952,27 @@ namespace E_MIL_Tracking_system.Controllers
 
                     try
                     {
+                        string rejectMailMessage = approvalType == "RCCA"
+                            ? "The RCCA details have been reviewed and rejected. The corrective action explanation is not acceptable. Please update the RCCA and resubmit it for approval."
+                            : "The actions were cross-verified on the line, we have found an issue. For details, refer below.";
+
                         await SendAcceptRejectMailAsync(
                             record,
                             email,
-                            "REJECTED",
-                            "The actions were cross-verified on the line, we have found an issues, for details refer below"
+                            approvalType == "RCCA" ? "RCCA REJECTED" : "REJECTED",
+                            rejectMailMessage
                         );
                     }
                     catch (Exception mailEx)
                     {
-                        ViewBag.IsSuccess = false;
-                        ViewBag.Message = "Rejected successfully, but mail failed: " + mailEx.Message;
-                        return View("~/Views/Checklist/ApprovalResult.cshtml");
+                        
                     }
                 }
 
                 ViewBag.IsSuccess = false;
-                ViewBag.Message =
-                    "The audit checklist verification was not approved during cross-verification. Additional corrective actions and validation are required before final closure.";
+                ViewBag.Message = approvalType == "RCCA"
+                    ? "RCCA Rejected Successfully."
+                    : "After Image Rejected Successfully.";
 
                 return View("~/Views/Checklist/ApprovalResult.cshtml");
             }
@@ -1147,7 +1248,7 @@ namespace E_MIL_Tracking_system.Controllers
             _emailQueue.QueueEmail(async cancellationToken =>
             {
                 await _emailService.SendEmailWithMultipleInlineImagesAsync(
-                    "Sharath_G@foxlink.com",
+                    "Sharath_G@foxlink.com,Charitha_J@foxlink.com",
                     subject,
                     body,
                     inlineImages

@@ -4,7 +4,7 @@
 }
 
 <div class="dashboard-wrapper">
-    
+
     <div class="dashboard-top-bar">
 
         <div class="dashboard-header">
@@ -142,56 +142,50 @@
 
             <div class="audit-table-wrapper dashboard-audit-table-wrapper">
                 <table class="audit-hours-table">
-                        <tbody>
-                            <tr>
-                                <th class="left-head">Date</th>
-                                @foreach (var item in row.Dates)
-                                {
-                                    <th class="date-cell @(item.StartsWith("WK") ? "week-cell" : "")">
-                                        @item
-                                    </th>
-                                }
-                            </tr>
+                    <tbody>
+                        <tr>
+                            <th class="left-head">Date</th>
+                            @foreach (var item in row.Dates)
+                            {
+                                <th class="date-cell @(item.StartsWith("WK") ? "week-cell" : "")">
+                                    @item
+                                </th>
+                            }
+                        </tr>
 
-                            <tr>
-                                <th class="row-head total-row">Total Finding</th>
-                                @foreach (var item in row.TotalFindings)
-                                {
-                                    <td>@item</td>
-                                }
-                            </tr>
+                        <tr>
+                            <th class="row-head total-row">Total Finding</th>
+                            @foreach (var item in row.TotalFindings)
+                            {
+                                <td>@item</td>
+                            }
+                        </tr>
 
                         <tr>
                             <th class="row-head audit-row">Audit Hour</th>
 
                             @for (int i = 0; i < row.AuditHours.Count; i++)
                             {
-                                var isSaved = !string.IsNullOrWhiteSpace(
-                                Convert.ToString(row.AuditHours[i])
-                                );
+                                var isSaved = !string.IsNullOrWhiteSpace(Convert.ToString(row.AuditHours[i]));
+                                var originalDateText = Convert.ToString(row.Dates[i]);
+                                var actualDateText = originalDateText;
 
-                                bool isWeekColumn = i == 0;
-                                bool isFutureDate = false;
-
-                                if (!isWeekColumn)
+                                if (originalDateText.Contains("/"))
                                 {
-                                    var fullDateText = row.Dates[i] + "-" + currentYear;
-
-                                    if (DateTime.TryParseExact(
-                                    fullDateText,
-                                    "dd-MMM-yyyy",
-                                    System.Globalization.CultureInfo.InvariantCulture,
-                                    System.Globalization.DateTimeStyles.None,
-                                    out DateTime parsedDate))
-                                    {
-                                        if (parsedDate.Date > DateTime.Today.Date)
-                                        {
-                                            isFutureDate = true;
-                                        }
-                                    }
+                                    actualDateText = originalDateText.Split('/')[1];
+                                }
+                                bool isFutureDate = false;
+                                if (DateTime.TryParseExact(
+                                actualDateText + "-" + currentYear,
+                                new[] { "dd-MMM-yyyy", "d-MMM-yyyy" },
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                System.Globalization.DateTimeStyles.None,
+                                out DateTime parsedDate))
+                                {
+                                    isFutureDate = parsedDate.Date > DateTime.Today.Date;
                                 }
 
-                                bool isReadonly = isSaved || isFutureDate || isWeekColumn;
+                                bool isReadonly = isSaved || isFutureDate;
 
                                 <td>
                                     <form asp-controller="Checklist"
@@ -203,7 +197,8 @@
 
                                         <input type="hidden"
                                                name="AuditDateText"
-                                               value="@row.Dates[i]" />
+                                               value="@actualDateText" />
+
                                         <input type="hidden"
                                                name="ReturnUrl"
                                                value="/Dashboard/Index?month=@ViewBag.SelectedMonth&year=@ViewBag.SelectedYear&week=@ViewBag.SelectedWeek" />
@@ -229,24 +224,24 @@
                             }
                         </tr>
 
-                            <tr>
-                                <th class="row-head finding-row">Finding/Hour</th>
-                                @foreach (var item in row.FindingHr)
-                                {
-                                    <td>@item</td>
-                                }
-                            </tr>
+                        <tr>
+                            <th class="row-head finding-row">Finding/Hour</th>
+                            @foreach (var item in row.FindingHr)
+                            {
+                                <td>@item</td>
+                            }
+                        </tr>
 
-                            <tr>
-                                <th class="row-head r-row">R</th>
-                                @foreach (var item in row.RValues)
-                                {
-                                    <td>@item</td>
-                                }
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        <tr>
+                            <th class="row-head r-row">R</th>
+                            @foreach (var item in row.RValues)
+                            {
+                                <td>@item</td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -327,7 +322,7 @@
             function yAxisOptions() {
                 return {
                     min: 0,
-                    max: 20,              
+                    max: 20,
                     tickInterval: 2,
                     allowDecimals: false,
                     title: { text: null },
@@ -352,9 +347,9 @@
                             dataLabels: {
                                 enabled: true,
                                 crop: false,
-                                overflow: "allow",     
-                                allowOverlap: true,    
-                                inside: true,         
+                                overflow: "allow",
+                                allowOverlap: true,
+                                inside: true,
                                 verticalAlign: "middle",
                                 formatter: function () {
                                     return this.y > 0 ? this.y : "";
@@ -960,22 +955,19 @@
     }
 
     @@media (max-width: 768px) {
-        .dashboard-top-bar
+        .dashboard-top-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
 
-    {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+        .filter-form {
+            width: 100%;
+            justify-content: flex-start;
+        }
 
-    .filter-form {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .dashboard-header h4 {
-        font-size: 24px;
-    }
-
+        .dashboard-header h4 {
+            font-size: 24px;
+        }
     }
 
     @@media (max-width: 991px) {
@@ -1172,12 +1164,9 @@
     }
 
     @@media (max-width: 991px) {
-        .wide-chart-card
-
-    {
-        grid-column: span 1;
-    }
-
+        .wide-chart-card {
+            grid-column: span 1;
+        }
     }
 
     .audit-dashboard-card {

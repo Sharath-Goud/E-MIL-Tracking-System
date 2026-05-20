@@ -190,7 +190,7 @@ namespace E_MIL_Tracking_system.Services
                 try
                 {
                     await emailService.SendEmailWithMultipleInlineImagesAsync(
-                        "Sharath_G@foxlink.com",
+                        "Sharath_G@foxlink.com,Charitha_J@foxlink.com",
                         subject,
                         body,
                         inlineImages

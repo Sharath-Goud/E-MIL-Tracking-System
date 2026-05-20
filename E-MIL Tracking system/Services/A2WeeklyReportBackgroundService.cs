@@ -19,52 +19,30 @@ namespace E_MIL_Tracking_system.Services
             _env = env;
         }
 
-        //protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        //{
-        //    while (!stoppingToken.IsCancellationRequested)
-        //    {
-        //        var now = DateTime.Now;
-
-        //        // Every Monday exactly 6 PM
-        //        if (now.DayOfWeek == DayOfWeek.Monday &&
-        //            now.Hour == 18 &&
-        //            now.Minute == 0)
-        //        {
-        //            await SendPreviousWeekA2ReportAsync();
-
-        //            // avoid sending multiple times within same minute/hour
-        //            await Task.Delay(TimeSpan.FromMinutes(2), stoppingToken);
-        //        }
-        //    }
-        //}
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            DateTime? lastSentDate = null;
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
                     var now = DateTime.Now;
 
-                    if (now.Hour == 17 &&
-                        now.Minute == 47 &&
-                        lastSentDate != now.Date)
+                    if (now.DayOfWeek == DayOfWeek.Monday &&
+                        now.Hour == 18 &&
+                        now.Minute >= 0 &&
+                        now.Minute < 5)
                     {
-                        Console.WriteLine("A2 Weekly Report Mail Triggered");
-
                         await SendPreviousWeekA2ReportAsync();
 
-                        lastSentDate = now.Date;
+                        await Task.Delay(TimeSpan.FromMinutes(6), stoppingToken);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("A2 Weekly Report Error: " + ex.Message);
+                    Console.WriteLine($"A2 Weekly Report Error: {ex.Message}");
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
         }
 
@@ -142,12 +120,12 @@ namespace E_MIL_Tracking_system.Services
             if (!records.Any())
                 return;
 
-            string subject = $"A2 Weekly Report - {previousMonday:dd-MMM-yyyy} to {previousSaturday:dd-MMM-yyyy}";
+            string subject = $"E-MIL Weekly Report - {previousMonday:dd-MMM-yyyy} to {previousSaturday:dd-MMM-yyyy}";
 
             string body = BuildA2WeeklyReportHtml(records, previousMonday, previousSaturday);
 
             await emailService.SendEmailAsync(
-                "Sharath_G@foxlink.com",
+                "Sharath_G@foxlink.com,Charitha_J@foxlink.com",
                 subject,
                 body
             );
@@ -163,27 +141,28 @@ namespace E_MIL_Tracking_system.Services
             sb.Append($@"
                 <html>
                 <body style='font-family:Arial, sans-serif; background:#f4f6fb; padding:20px;'>
-                    <h2 style='color:#1D2545;'>A2 Weekly Report</h2>
+                    <h2 style='color:#1D2545;'>E-MIL Weekly Report</h2>
 
                     <p style='font-size:14px; line-height:1.8; color:#111827;'>
 
                         Hi sir,
-                        <br/><br/>
+                        <br/>
 
                         Good Day ..!
-                        <br/><br/>
+                        <br/>
 
                         Please find the updated Weekly Line Audit Reports for WK'19/04 attached.
                         I have uploaded the documents to Radar for your convenience.
-                        <br/><br/>
+                        <br/>
 
-                        <b>For A246c Radar Link :</b> rdar://162670324
-                        <br/><br/>
-
-                        Weekly E-System Validation report completed and uploaded to radar.
-                        <br/><br/>
-
-                        <b>For E-System Radar link :</b> rdar://163476850
+                        <b>For A246c Radar Link :</b> 
+                        <a href='https://chirp.apple.com/problem/162670324?queryid=ccd'
+                           target='_blank'
+                           style='color:#2563eb;
+                                  font-weight:600;
+                                  text-decoration:none;'>
+                            rdar://162670324
+                        </a>
                         <br/><br/>
 
                         <b>1. A246c Line Audit Points:</b>

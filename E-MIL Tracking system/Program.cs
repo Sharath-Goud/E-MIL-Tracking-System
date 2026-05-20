@@ -27,9 +27,6 @@ builder.Services.Configure<SmtpSettings>(
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddSingleton<IBackgroundEmailQueue, BackgroundEmailQueue>();
 builder.Services.AddHostedService<BackgroundEmailService>();
-builder.Services.AddHostedService<RccaReminderBackgroundService>();
-builder.Services.AddHostedService<AfterImageReminderService>();
-builder.Services.AddHostedService<ApprovalReviewReminderService>();
 builder.Services.AddHostedService<A2WeeklyReportBackgroundService>();
 builder.Services.Configure<HostOptions>(options =>
 {

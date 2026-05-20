@@ -148,7 +148,7 @@ public class AfterImageReminderService : BackgroundService
                 _emailQueue.QueueEmail(async ct =>
                 {
                     await emailService.SendEmailWithMultipleInlineImagesAsync(
-                        "Sharath_G@foxlink.com",
+                        "Sharath_G@foxlink.com,Charitha_J@foxlink.com",
                         subject,
                         body,
                         inlineImages

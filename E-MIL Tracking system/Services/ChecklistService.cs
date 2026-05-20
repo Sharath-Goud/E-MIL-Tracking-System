@@ -371,5 +371,14 @@ namespace E_MIL_Tracking_system.Services
         {
             await _repo.MarkReviewReminderSentAsync(checklistId, email);
         }
+        public async Task<string?> GetApprovalStatusAsync(int checklistId, string email)
+        {
+            return await _repo.GetApprovalStatusAsync(checklistId, email);
+        }
+
+        public async Task UpdateRccaAcceptedAsync(int id, bool isAccepted)
+        {
+            await _repo.UpdateRccaAcceptedAsync(id, isAccepted);
+        }
     }
 }

@@ -28,5 +28,6 @@
         public bool DueReminderSent { get; set; }
         public DateTime? CreatedAt { get; set; }
         public bool IsRccaMailSent { get; set; }
+        public bool IsRccaAccepted { get; set; }
     }
 }

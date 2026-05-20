@@ -20,5 +20,7 @@ namespace E_MIL_Tracking_system.Repositories.Interfaces
         Task UpdateMainChecklistAsync(CreateChecklistDto dto, string beforeImagePath);
         Task<List<ChecklistApprovalReminderDto>> GetPendingReviewReminderAsync();
         Task MarkReviewReminderSentAsync(int checklistId, string email);
+        Task<string?> GetApprovalStatusAsync(int checklistId, string email);
+        Task UpdateRccaAcceptedAsync(int id, bool isAccepted);
     }
 }   
