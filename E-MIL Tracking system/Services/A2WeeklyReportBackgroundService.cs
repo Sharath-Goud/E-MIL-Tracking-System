@@ -19,6 +19,7 @@ namespace E_MIL_Tracking_system.Services
             _env = env;
         }
 
+        private DateTime? _lastSentDate;
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -29,17 +30,18 @@ namespace E_MIL_Tracking_system.Services
 
                     if (now.DayOfWeek == DayOfWeek.Monday &&
                         now.Hour == 18 &&
-                        now.Minute >= 0 &&
-                        now.Minute < 5)
+                        _lastSentDate != now.Date)
                     {
+                        Console.WriteLine("Weekly mail triggered...");
+
                         await SendPreviousWeekA2ReportAsync();
 
-                        await Task.Delay(TimeSpan.FromMinutes(6), stoppingToken);
+                        _lastSentDate = now.Date;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"A2 Weekly Report Error: {ex.Message}");
+                    Console.WriteLine($"A2 Weekly Report Error: {ex}");
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
@@ -238,39 +240,103 @@ namespace E_MIL_Tracking_system.Services
         }
 
         private string BuildImageHtml(string? imagePaths)
+{
+    if (string.IsNullOrWhiteSpace(imagePaths))
+        return "-";
+
+    var sb = new StringBuilder();
+
+    var images = imagePaths.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+    foreach (var img in images)
+    {
+        try
         {
-            if (string.IsNullOrWhiteSpace(imagePaths))
-                return "-";
+            string relativePath = img.Trim().TrimStart('/');
 
-            string baseUrl = "http://10.52.1.126:8040/";
+            string fullPath = Path.Combine(
+                _env.WebRootPath,
+                relativePath.Replace("/", Path.DirectorySeparatorChar.ToString())
+            );
 
-            var images = imagePaths.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-            var sb = new StringBuilder();
-
-            foreach (var img in images)
+            if (!File.Exists(fullPath))
             {
-                var path = img.Trim();
-
-                string imageUrl = path.StartsWith("http")
-                    ? path
-                    : baseUrl.TrimEnd('/') + "/" + path.TrimStart('/');
-
-                sb.Append($@"
-                    <img src='{imageUrl}'
-                         width='150'
-                         height='100'
-                         style='display:block;
-                                object-fit:cover;
-                                border-radius:6px;
-                                border:1px solid #94a3b8;
-                                margin:3px;
-                                margin-left: 50px' />
-                ");
+                sb.Append("<div>Image Not Found</div>");
+                continue;
             }
 
-            return sb.Length == 0 ? "-" : sb.ToString();
+            byte[] imageBytes = File.ReadAllBytes(fullPath);
+
+            string extension = Path.GetExtension(fullPath).ToLower();
+
+            string mimeType = extension switch
+            {
+                ".png" => "image/png",
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".gif" => "image/gif",
+                ".bmp" => "image/bmp",
+                ".webp" => "image/webp",
+                _ => "image/jpeg"
+            };
+
+            string base64 = Convert.ToBase64String(imageBytes);
+
+            sb.Append($@"
+                <img src='data:{mimeType};base64,{base64}'
+                     width='180'
+                     height='120'
+                     style='display:block;
+                            object-fit:cover;
+                            border:1px solid #94a3b8;
+                            border-radius:6px;
+                            margin:5px auto;' />
+            ");
         }
+        catch (Exception ex)
+        {
+            sb.Append("<div>Image Error</div>");
+            Console.WriteLine($"Image Load Error: {ex.Message}");
+        }
+    }
+
+    return sb.ToString();
+}
+
+        //private string BuildImageHtml(string? imagePaths)
+        //{
+        //    if (string.IsNullOrWhiteSpace(imagePaths))
+        //        return "-";
+
+        //    string baseUrl = "http://10.52.1.126:8040/";
+
+        //    var images = imagePaths.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+        //    var sb = new StringBuilder();
+
+        //    foreach (var img in images)
+        //    {
+        //        var path = img.Trim();
+
+        //        string imageUrl = path.StartsWith("http")
+        //            ? path
+        //            : baseUrl.TrimEnd('/') + "/" + path.TrimStart('/');
+
+        //        sb.Append($@"
+        //            <img src='{imageUrl}'
+        //                 width='150'
+        //                 height='100'
+        //                 style='display:block;
+        //                        object-fit:cover;
+        //                        border-radius:6px;
+        //                        border:1px solid #94a3b8;
+        //                        margin:3px;
+        //                        margin-left: 50px' />
+        //        ");
+        //    }
+
+        //    return sb.Length == 0 ? "-" : sb.ToString();
+        //}
 
         private class A2WeeklyReportDto
         {
